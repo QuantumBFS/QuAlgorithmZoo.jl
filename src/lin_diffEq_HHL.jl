@@ -110,13 +110,12 @@ function Array_QuDiff(tspan::Tuple,h::Float64,g::Function,alg::alg_lin_diffeq)
   A_
 end
 
-function solve_QuDiff(alg::alg_lin_diffeq ,A::Function, b::Function, x::Vector,tspan::Tuple, h::Float64)
+function solve_QuDiff(alg::alg_lin_diffeq ,A::Function, b::Function, x::Vector,tspan::Tuple, h::Float64, n_reg::Int)
 
   mat = Array_QuDiff(tspan,h,A,alg)
   state = prepare_init_state(tspan,x,h,b,alg)
   λ = maximum(eigvals(mat))
   C_value = minimum(eigvals(mat) .|> abs)*0.01;
-  n_reg = 12;
   mat = 1/(λ*2)*mat
   state = state*1/(2*λ) |> normalize!
   res = hhlsolve(mat,state, n_reg, C_value)
