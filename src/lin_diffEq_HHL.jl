@@ -81,18 +81,20 @@ function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::AlgQ
     N = nextpow(2,2*N_t + 1) # To ensure we have a power of 2 dimension for matrix
     A_ = zeros(ComplexF64, N*sz, N*sz)
     # Generates First two rows
-     A_[1:sz, 1:sz] = i_mat
-     A_[sz + 1:2*sz, 1:sz*2] = [-1*(i_mat + h*g(tspan[1])) i_mat]
+    A_[1:sz, 1:sz] = i_mat
+    A_[sz + 1:2*sz, 1:sz] = -1*(i_mat + h*g(tspan[1]))
+    A_[sz + 1:2*sz,sz+1:sz*2] = i_mat
     #Generates additional rows based on k - step
     for i in 3:alg.step
         A_[sz*(i - 1) + 1:sz*i, sz*(i - 3) + 1:sz*i] = aval(QuAB2,(i-2)*h + tspan[1],h,g)
     end
     for i in alg.step + 1:N_t
-        A_[sz*(i - 1) + 1:sz*(i), sz*(i - alg.step - 1) + 1:sz*i]= aval(alg,(i - 2)*h + tspan[1],h,g)
+        A_[sz*(i - 1) + 1:sz*(i), sz*(i - alg.step - 1) + 1:sz*i] = aval(alg,(i - 2)*h + tspan[1],h,g)
     end
     #Generates half mirroring matrix
     for i in N_t + 1:N
-        A_[sz*(i - 1) + 1:sz*(i), sz*(i - 2) + 1:sz*i] = [-1*i_mat i_mat]
+        A_[sz*(i - 1) + 1:sz*(i), sz*(i - 2) + 1:sz*(i - 1)] = -1*i_mat
+        A_[sz*(i - 1) + 1:sz*(i), sz*(i - 1) + 1:sz*i] = i_mat
     end
     A_ = [zero(A_) A_;A_' zero(A_)]
     return A_
