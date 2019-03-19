@@ -1,12 +1,12 @@
-export Array_QuDiff, prepare_init_state, solve_QuDiff, alg_lin_diffeq, bval, Aval
+export array_qudiff, prepare_init_state, solve_qudiff, AlgQuDiff, bval, aval
 export QuEuler, QuLeapfrog, QuAB2, QuAB3, QuAB4
 
 """
     Based on : arxiv.org/abs/1010.2745v2
 
-    * Array_QuDiff(N_t,N,h,A) - generates matrix for k-step solver
+    * array_qudiff(N_t,N,h,A) - generates matrix for k-step solver
     * prepare_init_state(b,x,h,N_t) - generates inital states
-    * solve_QuDiff - solver
+    * solve_qudiff - solver
 
     x' = Ax + b
 
@@ -19,106 +19,91 @@ export QuEuler, QuLeapfrog, QuAB2, QuAB3, QuAB4
 """
 
 """
-    alg_lin_diffeq
+    AlgQuDiff
     * step - step for multistep method
     * α - coefficients for xₙ
     * β - coefficent for xₙ'
 """
-struct alg_lin_diffeq
-  step::Int
-  α::Array
-  β::Array
-  alg_lin_diffeq(step,α,β) = new(step,α,β)
+
+struct AlgQuDiff
+    step::Int
+    α::Array
+    β::Array
+    AlgQuDiff(step,α,β) = new(step,α,β)
 end
 
-function bval(alg::alg_lin_diffeq,t,h,g::Function)
-  b = zero(g(1))
-  for i = 1:(alg.step)
-    b += alg.β[i]*g(t-(i-1)*h)
-  end
-  b
+function bval(alg::AlgQuDiff,t,h,g::Function)
+    b = zero(g(1))
+    for i in 1:(alg.step)
+        b += alg.β[i]*g(t-(i-1)*h)
+    end
+    b
 end
 
-function Aval(alg::alg_lin_diffeq,t,h,g::Function)
-  I_mat = Matrix{Float64}(I, size(g(1)))
-  A = Matrix{Float64}(I, size(g(1)))
-  for i = 1:(alg.step)
-    A = [-1*(alg.α[i]*I_mat + h*alg.β[i]*g(t-(i-1)*h)) A]
-  end
-  A
+function aval(alg::AlgQuDiff,t,h,g::Function)
+    sz, = size(g(1))
+    A = Array{ComplexF64}(undef,sz,(alg.step + 1)*sz)
+    i_mat = Matrix{Float64}(I, size(g(1)))
+    A[1:sz,sz*(alg.step) + 1:sz*(alg.step + 1)] = i_mat
+    for i in 1:alg.step
+        A[1:sz,sz*(i - 1) + 1: sz*i] = -1*(alg.α[alg.step - i + 1]*i_mat + h*alg.β[alg.step - i + 1]*g(t - (alg.step - i)*h))
+    end
+    A
 end
 """
     Explicit Linear Multistep Methods
 """
-QuEuler = alg_lin_diffeq(1,[1],[1]);
-QuLeapfrog = alg_lin_diffeq(2,[0 1],[2 0])
-QuAB2 = alg_lin_diffeq(2,[1 0], [1.5 -0.5])
-QuAB3 = alg_lin_diffeq(3,[1 0 0], [23/12 -16/12 5/12])
-QuAB4 = alg_lin_diffeq(4,[1 0 0 0], [55/24 -59/24 37/24 -9/24])
+QuEuler = AlgQuDiff(1,[1],[1]);
+QuLeapfrog = AlgQuDiff(2,[0 1],[2 0])
+QuAB2 = AlgQuDiff(2,[1 0], [1.5 -0.5])
+QuAB3 = AlgQuDiff(3,[1 0 0], [23/12 -16/12 5/12])
+QuAB4 = AlgQuDiff(4,[1 0 0 0], [55/24 -59/24 37/24 -9/24])
 
 
-function prepare_init_state(tspan::Tuple,x::Vector,h::Float64,g::Function,alg::alg_lin_diffeq)
-  init_state = x;
-  N_t = Int(round(2*(tspan[2] - tspan[1])/h + 3))
-  b = similar(g(1))
-  for i = 1:N_t
-   if i < (N_t+1)/2 -1
-      b = bval(alg,h*(i-1) + tspan[1],h,g)
-      init_state = [init_state;h*b]
-    else
-      init_state = [init_state;zero(b)]
-   end
-
-  end
-  init_state = [init_state;zero(init_state)]
-  init_state
+function prepare_init_state(tspan::Tuple,x::Vector,h::Float64,g::Function,alg::AlgQuDiff)
+    N_t = Int(round(2*(tspan[2] - tspan[1])/h + 3))
+    sz, = size(g(1))
+    init_state = zeros(ComplexF64,2*(N_t + 1)*sz)
+    #inital value
+    init_state[1:sz] = x
+    for i in 2:(N_t+1)/2 - 1
+        b = bval(alg,h*(i - 1) + tspan[1],h,g)
+        init_state[Int(sz*(i - 1) + 1):Int(sz*(i))] = h*b
+    end
+    init_state
 end
 
-function Array_QuDiff(tspan::Tuple,h::Float64,g::Function,alg::alg_lin_diffeq)
-  N_t = Int(round(2*(tspan[2] - tspan[1])/h + 3))
-  sz = size(g(1))
-  I_mat = Matrix{Float64}(I, size(g(1)));
-  A_ = I_mat;
-  # Generates First two rows
-  A_ = [A_ zeros(sz[1],sz[1]*(N_t));-1*(I_mat + h*g(tspan[1])) I_mat zeros(sz[1],sz[1]*(N_t-1))]
-  #Generates additional rows based on k - step
-  if alg.step > 1
-    A_ = [A_; Aval(QuAB2,2*h + tspan[1],h,g) zeros(sz[1],sz[1]*(N_t-2))]
-  end
-
-  for i = 3:alg.step-1
-    tA_ = Aval(QuAB2,(i-1)*h + tspan[1],h,g)
-    tA_ = [zeros(sz[1],sz[1]*(i-2)) tA_]
-    A_ = [A_; tA_ zeros(sz[1],sz[1]*(N_t-i))]
-  end
-
-  if alg.step > 2
-    A_ = [A_;Aval(alg,(alg.step)*h + tspan[1],h,g) zeros(sz[1],sz[1]*(N_t-alg.step)) ]
-  end
-
-  for i = alg.step+1: (N_t + 1)/2 -2
-    tA_ = Aval(alg,(i-1)*h + tspan[1],h,g)
-    A_= [A_;zeros(sz[1],Int(sz[1]*(i-alg.step))) tA_ zeros(sz[1],Int(sz[1]*(N_t-i)))]
-   end
-  #Generates half mirroring matrix
-  for i = (N_t + 1)/2  : N_t
-    A_ = [A_; zeros(sz[1],Int(sz[1]*(i-2))) -1*I_mat I_mat zeros(sz[1],Int(sz[1]*(N_t + 1 -i)))]
-  end
-  A_ = [A_; zeros(sz[1],sz[1]*(N_t-1)) -1*I_mat I_mat];
-
-  A_ = [zero(A_) A_;A_' zero(A_)]
-  A_
+function array_qudiff(tspan::Tuple,h::Float64,g::Function,alg::AlgQuDiff)
+    sz, = size(g(1))
+    i_mat = Matrix{Float64}(I, size(g(1)))
+    N_t = Int(round(2*(tspan[2] - tspan[1])/h + 3))
+    A_ = zeros(ComplexF64,(N_t + 1)*sz,(N_t + 1)*sz)
+    # Generates First two rows
+    A_[1:sz, 1:sz] = i_mat
+    A_[sz + 1:2*sz,1:sz*2] = [-1*(i_mat + h*g(tspan[1])) i_mat]
+    #Generates additional rows based on k - step
+    for i in 3:alg.step
+        A_[Int(sz*(i - 1) + 1):Int(sz*(i)), Int(sz*(i - 3) + 1):Int(sz*i)] = aval(QuAB2,(i-2)*h + tspan[1],h,g)
+    end
+    for i in alg.step + 1:(N_t + 1)/2 - 1
+        A_[Int(sz*(i - 1) + 1):Int(sz*(i)),Int(sz*(i - alg.step - 1) + 1):Int(sz*i)]= aval(alg,(i - 2)*h + tspan[1],h,g)
+    end
+    #Generates half mirroring matrix
+    for i in (N_t + 1)/2:N_t + 1
+        A_[Int(sz*(i - 1) + 1):Int(sz*(i)),Int(sz*(i - 2) + 1):Int(sz*i)] = [ -1*i_mat i_mat]
+    end
+    A_ = [zero(A_) A_;A_' zero(A_)]
+    A_
 end
 
-function solve_QuDiff(alg::alg_lin_diffeq ,A::Function, b::Function, x::Vector,tspan::Tuple, h::Float64, n_reg::Int)
-
-  mat = Array_QuDiff(tspan,h,A,alg)
-  state = prepare_init_state(tspan,x,h,b,alg)
-  λ = maximum(eigvals(mat))
-  C_value = minimum(eigvals(mat) .|> abs)*0.01;
-  mat = 1/(λ*2)*mat
-  state = state*1/(2*λ) |> normalize!
-  res = hhlsolve(mat,state, n_reg, C_value)
-  res = res/λ
-  res
-end
+function solve_qudiff(alg::AlgQuDiff ,A::Function, b::Function, x::Vector,tspan::Tuple, h::Float64, n_reg::Int)
+    mat = array_qudiff(tspan, h, A, alg)
+    state = prepare_init_state(tspan, x, h, b, alg)
+    λ = maximum(eigvals(mat))
+    C_value = minimum(eigvals(mat) .|> abs)*0.01;
+    mat = 1/(λ*2)*mat
+    state = state*1/(2*λ) |> normalize!
+    res = hhlsolve(mat,state, n_reg, C_value)
+    res = res/λ
+    res
+end;
