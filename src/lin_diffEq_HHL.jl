@@ -1,7 +1,8 @@
-export array_qudiff, prepare_init_state, solve_qudiff, AlgQuDiff, bval, aval
+export array_qudiff, prepare_init_state, LDEMSAlgHHL, bval, aval, solve
 export QuEuler, QuLeapfrog, QuAB2, QuAB3, QuAB4
+export QuLDEMSProblem
 
-
+using DiffEqBase
 """
     Based on : arxiv.org/abs/1010.2745v2
 
@@ -20,19 +21,66 @@ export QuEuler, QuLeapfrog, QuAB2, QuAB3, QuAB4
 """
 
 """
-    AlgQuDiff
+    LDEMSAlgHHL
     * step - step for multistep method
     * α - coefficients for xₙ
     * β - coefficent for xₙ'
 """
+abstract type QuODEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
+abstract type QuODEProblem{uType,tType,isinplace} <: DiffEqBase.AbstractODEProblem{uType,tType,isinplace} end
+abstract type LDEMSAlgHHL <: QuODEAlgorithm end
 
-struct AlgQuDiff{T}
+struct QuLDEMSProblem{uType,tType,isinplace,F,C} <: QuODEProblem{uType,tType,isinplace}
+    A::F
+    b::C
+    u0::uType
+    tspan::tType
+
+    function QuLDEMSProblem(A,b,u0,tspan)
+        new{typeof(u0),typeof(tspan),false,typeof(A),typeof(b)}(A,b,u0,tspan)
+    end
+end
+
+"""
+    Explicit Linear Multistep Methods
+"""
+struct QuEuler{T}<:LDEMSAlgHHL
     step::Int
     α::Vector{T}
     β::Vector{T}
+
+    QuEuler(::Type{T} = Float64) where {T} = new{T}(1,[1.0,],[1.0,])
 end
 
-function bval(alg::AlgQuDiff,t,h,g::Function)
+struct QuLeapfrog{T}<:LDEMSAlgHHL
+    step::Int
+    α::Vector{T}
+    β::Vector{T}
+
+    QuLeapfrog(::Type{T} = Float64) where {T} = new{T}(2,[0, 1.0],[2.0, 0])
+end
+struct QuAB2{T}<:LDEMSAlgHHL
+    step::Int
+    α::Vector{T}
+    β::Vector{T}
+
+    QuAB2(::Type{T} = Float64) where {T} = new{T}(2,[1.0, 0], [1.5, -0.5])
+end
+struct QuAB3{T}<:LDEMSAlgHHL
+    step::Int
+    α::Vector{T}
+    β::Vector{T}
+    QuAB3(::Type{T} = Float64) where {T} = new{T}(3,[1.0, 0, 0], [23/12, -16/12, 5/12])
+end
+struct QuAB4{T}<:LDEMSAlgHHL
+    step::Int
+    α::Vector{T}
+    β::Vector{T}
+
+    QuAB4(::Type{T} = Float64) where {T} = new{T}(4,[1.0, 0, 0, 0], [55/24, -59/24, 37/24, -9/24])
+end
+
+function bval(alg::LDEMSAlgHHL,t,h,g::Function)
     b = zero(g(1))
     for i in 1:(alg.step)
         b += alg.β[i]*g(t-(i-1)*h)
@@ -40,7 +88,7 @@ function bval(alg::AlgQuDiff,t,h,g::Function)
     return b
 end
 
-function aval(alg::AlgQuDiff,t,h,g::Function)
+function aval(alg::LDEMSAlgHHL,t,h,g::Function)
     sz, = size(g(1))
     A = Array{ComplexF64}(undef,sz,(alg.step + 1)*sz)
     i_mat = Matrix{Float64}(I, size(g(1)))
@@ -51,16 +99,7 @@ function aval(alg::AlgQuDiff,t,h,g::Function)
     return A
 end
 
-"""
-    Explicit Linear Multistep Methods
-"""
-QuEuler = AlgQuDiff(1,[1.0,],[1.0,])
-QuLeapfrog = AlgQuDiff(2,[0, 1.0],[2.0, 0])
-QuAB2 = AlgQuDiff(2,[1.0, 0], [1.5, -0.5])
-QuAB3 = AlgQuDiff(3,[1.0, 0, 0], [23/12, -16/12, 5/12])
-QuAB4 = AlgQuDiff(4,[1.0, 0, 0, 0], [55/24, -59/24, 37/24, -9/24])
-
-function prepare_init_state(tspan::NTuple{2, Float64},x::Vector,h::Float64,g::Function,alg::AlgQuDiff)
+function prepare_init_state(tspan::NTuple{2, Float64},x::Vector,h::Float64,g::Function,alg::LDEMSAlgHHL)
     N_t = round(Int, (tspan[2] - tspan[1])/h + 1) #number of time steps
     N = nextpow(2,2*N_t + 1) # To ensure we have a power of 2 dimension for matrix
     sz, = size(g(1))
@@ -74,7 +113,7 @@ function prepare_init_state(tspan::NTuple{2, Float64},x::Vector,h::Float64,g::Fu
     return init_state
 end
 
-function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::AlgQuDiff)
+function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::LDEMSAlgHHL)
     sz, = size(g(1))
     i_mat = Matrix{Float64}(I, size(g(1)))
     N_t = round(Int, (tspan[2] - tspan[1])/h + 1) #number of time steps
@@ -100,7 +139,12 @@ function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::AlgQ
     return A_
 end
 
-function solve_qudiff(alg::AlgQuDiff ,A::Function, b::Function, x::Vector,tspan::NTuple{2, Float64}, h::Float64, n_reg::Int)
+function DiffEqBase.solve(prob::QuLDEMSProblem{uType,tType,isinplace,F,C}, alg::LDEMSAlgHHL, h = (prob.tspan[2]-prob.tspan[1])/100, n_reg::Int = 12, kwargs...) where {uType,tType,isinplace,F,C}
+    A = prob.A
+    b = prob.b
+    tspan = prob.tspan
+    x = prob.u0
+
     mat = array_qudiff(tspan, h, A, alg)
     state = prepare_init_state(tspan, x, h, b, alg)
     λ = maximum(eigvals(mat))

@@ -1,7 +1,7 @@
 using Yao
 using Yao.Intrinsics
 using QuAlgorithmZoo
-using Test, LinearAlgebra, StaticArrays
+using Test, LinearAlgebra
 using OrdinaryDiffEq
 
 function diffeq_problem(nbit::Int)
@@ -24,27 +24,27 @@ end
     n_reg = 12
     f(u,p,t) = M*u + v;
     prob = ODEProblem(f, x, tspan)
-
+    qprob = QuLDEMSProblem(A, b, x, tspan)
     sol = solve(prob, Tsit5(), dt = h, adaptive = :false)
     s = vcat(sol.u...)
 
-    res = solve_qudiff(QuEuler, A, b, x, tspan, h, n_reg)
+    res = solve(qprob, QuEuler, h, n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.5) |> all
 
-    res = solve_qudiff(QuLeapfrog, A, b, x,tspan, h, n_reg)
+    res = solve(qprob, QuLeapfrog, h, n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve_qudiff(QuAB2,A, b, x, tspan, h,n_reg)
+    res = solve(qprob, QuAB2, h,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve_qudiff(QuAB3,A, b, x, tspan, h,n_reg)
+    res = solve(qprob, QuAB3, h,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve_qudiff(QuAB4,A, b, x, tspan, h,n_reg)
+    res = solve(qprob, QuAB4, h ,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 end;
