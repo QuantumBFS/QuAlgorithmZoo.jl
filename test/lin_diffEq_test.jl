@@ -28,23 +28,23 @@ end
     sol = solve(prob, Tsit5(), dt = h, adaptive = :false)
     s = vcat(sol.u...)
 
-    res = solve(qprob, QuEuler, h, n_reg)
+    res = solve(qprob, QuEuler(), h, n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.5) |> all
 
-    res = solve(qprob, QuLeapfrog, h, n_reg)
+    res = solve(qprob, QuLeapfrog(), h, n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve(qprob, QuAB2, h,n_reg)
+    res = solve(qprob, QuAB2(), h,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve(qprob, QuAB3, h,n_reg)
+    res = solve(qprob, QuAB3(), h,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 
-    res = solve(qprob, QuAB4, h ,n_reg)
+    res = solve(qprob, QuAB4(), h ,n_reg)
     r = res[(N_t + 1)*2 + 2^N - 1: (N_t + 1)*2 + 2^N + N_t - 3] # range of relevant values in the obtained state.
     @test isapprox.(s, r, atol = 0.3) |> all
 end;

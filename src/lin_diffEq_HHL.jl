@@ -1,4 +1,4 @@
-export array_qudiff, prepare_init_state, LDEMSAlgHHL, bval, aval, solve
+export array_qudiff, prepare_init_state, LDEMSAlgHHL, bval, aval
 export QuEuler, QuLeapfrog, QuAB2, QuAB3, QuAB4
 export QuLDEMSProblem
 
@@ -27,18 +27,18 @@ using DiffEqBase
     * β - coefficent for xₙ'
 """
 abstract type QuODEAlgorithm <: DiffEqBase.AbstractODEAlgorithm end
-abstract type QuODEProblem{uType,tType,isinplace} <: DiffEqBase.AbstractODEProblem{uType,tType,isinplace} end
+#abstract type QuODEProblem{uType,tType,isinplace} <: DiffEqBase.AbstractODEProblem{uType,tType,isinplace} end
 abstract type LDEMSAlgHHL <: QuODEAlgorithm end
 
-struct QuLDEMSProblem{uType,tType,isinplace,F,C} <: QuODEProblem{uType,tType,isinplace}
+struct QuLDEMSProblem{F,C,U,T} #<: QuODEProblem{uType,tType,isinplace}
     A::F
     b::C
-    u0::uType
-    tspan::tType
+    u0::U
+    tspan::NTuple{2,T}
 
-    function QuLDEMSProblem(A,b,u0,tspan)
-        new{typeof(u0),typeof(tspan),false,typeof(A),typeof(b)}(A,b,u0,tspan)
-    end
+    #function QuLDEMSProblem(A,b,u0,tspan)
+    #  new{typeof(u0),typeof(tspan),false,typeof(A),typeof(b)}(A,b,u0,tspan)
+    #end
 end
 
 """
@@ -125,7 +125,7 @@ function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::LDEM
     @inbounds A_[sz + 1:2*sz,sz+1:sz*2] = i_mat
     #Generates additional rows based on k - step
     for i in 3:alg.step
-        @inbounds A_[sz*(i - 1) + 1:sz*i, sz*(i - 3) + 1:sz*i] = aval(QuAB2,(i-2)*h + tspan[1],h,g)
+        @inbounds A_[sz*(i - 1) + 1:sz*i, sz*(i - 3) + 1:sz*i] = aval(QuAB2(),(i-2)*h + tspan[1],h,g)
     end
     for i in alg.step + 1:N_t
         @inbounds A_[sz*(i - 1) + 1:sz*(i), sz*(i - alg.step - 1) + 1:sz*i] = aval(alg,(i - 2)*h + tspan[1],h,g)
@@ -139,14 +139,14 @@ function array_qudiff(tspan::NTuple{2, Float64},h::Float64,g::Function,alg::LDEM
     return A_
 end
 
-function DiffEqBase.solve(prob::QuLDEMSProblem{uType,tType,isinplace,F,C}, alg::LDEMSAlgHHL, h = (prob.tspan[2]-prob.tspan[1])/100, n_reg::Int = 12, kwargs...) where {uType,tType,isinplace,F,C}
+function DiffEqBase.solve(prob::QuLDEMSProblem{F,C,U,T}, alg::LDEMSAlgHHL, dt = (prob.tspan[2]-prob.tspan[1])/100, n_reg::Int = 12) where {F,C,U,T}
     A = prob.A
     b = prob.b
     tspan = prob.tspan
     x = prob.u0
 
-    mat = array_qudiff(tspan, h, A, alg)
-    state = prepare_init_state(tspan, x, h, b, alg)
+    mat = array_qudiff(tspan, dt, A, alg)
+    state = prepare_init_state(tspan, x, dt, b, alg)
     λ = maximum(eigvals(mat))
     C_value = minimum(eigvals(mat) .|> abs)*0.01;
     mat = 1/(λ*2)*mat
