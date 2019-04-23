@@ -2,8 +2,7 @@ using Test, Random, LinearAlgebra, SparseArrays
 
 using QuAlgorithmZoo
 import QuAlgorithmZoo: _num_grover_step
-using Yao, Yao.Blocks
-using Yao.Intrinsics
+using Yao
 
 function GroverSearch(oracle, num_bit::Int; psi::DefaultRegister = uniform_state(num_bit))
     it = groveriter(psi, oracle)
@@ -42,7 +41,7 @@ end
 @testset "groverblock" begin
     psi = uniform_state(5)
     or = inference_oracle(5, [-1,2,5,4,3])
-    func_or = FunctionBlock{:Oracle}(reg->apply!(reg, or))
+    func_or = or
     gb = groverblock(or, psi)
     gb2 = groverblock(func_or, psi)
     @test apply!(copy(psi), gb) == (for l_psi in groveriter(copy(psi), func_or) psi = l_psi end; psi)
@@ -58,7 +57,7 @@ end
 
     # the desired subspace
     basis = collect(UInt, 0:1<<num_bit-1)
-    subinds = indices_with(num_bit, abs.(evidense), Int.(evidense.>0))
+    subinds = [itercontrol(num_bit, abs.(evidense), Int.(evidense.>0))...]
 
     v_desired = statevec(psi0)[subinds .+ 1]
     p = norm(v_desired)^2

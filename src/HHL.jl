@@ -29,7 +29,7 @@ function apply!(reg::DefaultRegister, hr::HHLCRot{N, NC, T}) where {N, NC, T}
     nbit = nqubits(reg)
     for j = 0:step_2:size(reg.state, 1)-step
         for i = j+1:j+step
-            λ = bfloat(takebit(i-1, hr.cbits...), nbit=nbit-1)
+            λ = bfloat(takebit(i-1, hr.cbits...), nbits=nbit-1)
             if λ >= hr.C_value
                 u = hhlrotmat(λ, hr.C_value)
                 u1rows!(state(reg), i, i+step, u...)
@@ -61,7 +61,7 @@ end
 
 """
     hhlsolve(A::Matrix, b::Vector) -> Vector
-    
+
 solving linear system using HHL algorithm. Here, A must be hermitian.
 """
 function hhlsolve(A::Matrix, b::Vector, n_reg::Int, C_value::Real)

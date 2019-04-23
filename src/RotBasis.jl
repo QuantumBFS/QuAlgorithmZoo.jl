@@ -23,12 +23,12 @@ end
 copy(block::RotBasis{T}) where T = RotBasis{T}(block.theta, block.phi)
 dispatch!(block::RotBasis, params::Vector) = ((block.theta, block.phi) = params; block)
 
-iparameters(rb::RotBasis) = (rb.theta, rb.phi)
-function setiparameters!(rb::RotBasis, theta::Real, phi::Real)
-    rb.theta, rb.phi = theta, phi
+iparams(rb::RotBasis) = (rb.theta, rb.phi)
+function setiparams!(rb::RotBasis, params::Tuple{<:Real, <:Real})
+    rb.theta, rb.phi = params
     rb
 end
-niparameters(::Type{<:RotBasis}) = 2
+niparams(::Type{<:RotBasis}) = 2
 render_params(r::RotBasis, ::Val{:random}) = rand()*π, rand()*2π
 
 function print_block(io::IO, R::RotBasis)

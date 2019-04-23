@@ -1,5 +1,5 @@
 using Yao
-using Yao.Intrinsics
+using BitBasis
 using QuAlgorithmZoo
 using Test, LinearAlgebra
 using OrdinaryDiffEq

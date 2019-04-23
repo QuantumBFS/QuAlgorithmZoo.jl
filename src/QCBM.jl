@@ -1,4 +1,4 @@
-import Yao.Registers: probs
+import Yao: probs
 export QCBM, QCBMGo!, psi, mmdgrad
 
 include("Kernels.jl")

@@ -23,7 +23,7 @@ function PEBlock(UG::GeneralMatrixGate, n_reg::Int, n_b::Int)
     end
 
     # Inverse QFT Block.
-    iqft = concentrate(nbit, QFTBlock{n_reg}() |> adjoint,[1:n_reg...,])
+    iqft = concentrate(nbit, QFTBlock{n_reg}()',[1:n_reg...,])
     chain(hs, control_circuit, iqft)
 end
 

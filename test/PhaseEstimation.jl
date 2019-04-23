@@ -1,5 +1,5 @@
 using Yao
-using Yao.Intrinsics
+using BitBasis
 using Test, LinearAlgebra
 using QuAlgorithmZoo
 
@@ -40,7 +40,7 @@ end
     reg = apply!(join(reg2, reg1), circuit)
 
     # measure
-    res = breflect(M, measure(focus!(copy(reg), 1:M); nshot=10)[1]) / (1<<M)
+    res = breflect(M, measure(focus!(copy(reg), 1:M); nshots=10)[1]) / (1<<M)
 
     @test res ≈ ϕ
     @test apply!(reg, circuit |> adjoint) ≈ join(reg2, reg1)
@@ -64,5 +64,5 @@ end
 
     # measure
     bs, proj, amp_relative = projection_analysis(evec, focus!(reg, M+1:M+N))
-    @test isapprox(ϕs, bfloat.(bs, nbit=M), atol=0.05)
+    @test isapprox(ϕs, bfloat.(bs, nbits=M), atol=0.05)
 end

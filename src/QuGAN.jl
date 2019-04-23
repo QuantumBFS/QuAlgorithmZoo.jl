@@ -1,4 +1,4 @@
-import Yao.Registers: tracedist
+import Yao: tracedist
 
 export QuGAN, psi, toy_qugan, QuGANGo!
 """

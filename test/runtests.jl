@@ -28,6 +28,9 @@ end
 @testset "HHL" begin
     include("HHL.jl")
 end
+@testset "diff Eq" begin
+    include("lin_diffEq_test.jl")
+end
 
 @testset "QCOptProblem" begin
     include("QCOptProblem.jl")

@@ -1,4 +1,3 @@
-import Yao: gradient
 export num_gradient, diff_blocks, loss, circuit, QCOptProblem, QCOptGo!
 
 """

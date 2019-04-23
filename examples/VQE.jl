@@ -12,6 +12,27 @@ N = 5
 c = random_diff_circuit(N, N, [i=>mod(i,N)+1 for i=1:N], mode=:Merged) |> autodiff(:QC)
 dispatch!(c, :random)
 hami = heisenberg(N)
+
+dbs = collect(c, AbstractDiff)
+
+function scan(db, nparam::Int)
+    x = LinRange(0, 2pi, nparam)
+    y = zeros(nparam)
+    for (i,x) in enumerate(x)
+        dispatch!(db, x)
+        y[i] = expect(hami, zero_state(N) |> c) |> real
+    end
+    x, y
+end
+
+using Plots
+xs, ys = scan(dbs[10], 100)
+
+# see a sine curve
+plot(xs, ys)
+
+# get the exact ground state
 ed_groundstate(hami)
 
+# vqe ground state
 vqe_solve(c, hami)

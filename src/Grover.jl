@@ -15,7 +15,7 @@ Return a mask, that disired subspace of an oracle are masked true.
 """
 function target_space(nbit::Int, oracle)
     r = register(ones(ComplexF64, 1<<nbit))
-    apply!(r, oracle)
+    r |> oracle
     real(statevec(r)) .< 0
 end
 
