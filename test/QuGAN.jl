@@ -8,6 +8,7 @@ function run_test(nbit::Int, depth_gen::Int, depth_disc::Int; g_lr=0.1, d_lr=0.2
     qg
 end
 
+# to fix
 @testset "quantum circuit gan - opdiff" begin
     N = 3
     target = rand_state(N)
@@ -19,4 +20,3 @@ end
     qg = run_test(3, 4, 4, g_lr=Adam(lr=0.005), d_lr=Adam(lr=0.5), niter=300)
     @test qg |> loss < 0.1
 end
-

@@ -33,9 +33,11 @@ Imaginary time evolution method to get ground state, i.e. by projecting wave fun
 """
 itime_groundstate!(h::MatrixBlock; τ::Real=20, tol=1e-4) = reg -> itime_groundstate!(reg, h; τ=τ, tol=tol)
 function itime_groundstate!(reg::AbstractRegister, h::MatrixBlock; τ::Int=20, tol=1e-4)
-    span = 1
+    span = 1.0
     te = timeevolve(h, -im*span)
     for i = 1:τ÷span
+        @show reg
+        @show te
         reg |> te |> normalize!
     end
     if τ%span != 0

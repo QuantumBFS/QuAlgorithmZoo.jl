@@ -10,9 +10,9 @@ const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate,
 Return the generator of rotation block.
 """
 generator(rot::RotationGate) = rot.block
-generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>block), rot |> addrs)
+generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>block), rot |> occupied_locs)
 
-abstract type AbstractDiff{GT, N, T} <: TagBlock{N, T, GT} end
+abstract type AbstractDiff{GT, N, T} <: TagBlock{GT, N, T} end
 adjoint(df::AbstractDiff) = Daggered(df)
 
 istraitkeeper(::AbstractDiff) = Val(true)
@@ -115,20 +115,20 @@ function autodiff(mode::Val{:QC}, blk::AbstractBlock)
  end
 
 @inline function _perturb(func, gate::AbstractDiff{<:RotationGate}, δ::Real)
-    setiparams!(-, gate |> parent, δ)
+    dispatch!(-, gate, (δ,))
     r1 = func()
-    setiparams!(+, gate |> parent, 2δ)
+    dispatch!(+, gate, (2δ,))
     r2 = func()
-    setiparams!(-, gate |> parent, δ)
+    dispatch!(-, gate, (δ,))
     r1, r2
 end
 
 @inline function _perturb(func, gate::AbstractDiff{<:Rotor}, δ::Real)  # for put
-    dispatch!(-, gate |> parent, [δ])
+    dispatch!(-, gate, (δ,))
     r1 = func()
-    dispatch!(+, gate |> parent, [2δ])
+    dispatch!(+, gate, (2δ,))
     r2 = func()
-    dispatch!(-, gate |> parent, [δ])
+    dispatch!(-, gate, (δ,))
     r1, r2
 end
 
