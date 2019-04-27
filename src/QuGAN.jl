@@ -1,6 +1,8 @@
+using MacroTools: @forward
 import Yao: tracedist
 
 export QuGAN, psi, toy_qugan, QuGANGo!
+
 """
 Quantum GAN.
 
@@ -19,10 +21,10 @@ struct QuGAN{N} <: QCOptProblem
 
     function QuGAN(target::DefaultRegister, gen::MatrixBlock, dis::MatrixBlock)
         N = nqubits(target)
-        c = sequence(gen, addbit(1), dis)
+        c = Sequence([gen, addbit!(1), dis])
         witness_op = put(N+1, (N+1)=>P0)
-        gdiffs = collect(gen, AbstractDiff)
-        ddiffs = collect(dis, AbstractDiff)
+        gdiffs = collect_blocks(AbstractDiff, gen)
+        ddiffs = collect_blocks(AbstractDiff, dis)
         new{N}(target, gen, dis, zero_state(N), witness_op, c, gdiffs, ddiffs)
     end
 end

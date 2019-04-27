@@ -1,6 +1,7 @@
 using Test, Random, LinearAlgebra, SparseArrays, LuxurySparse
 
 using Yao
+using YaoArrayRegister: invorder
 using QuAlgorithmZoo
 using FFTW
 

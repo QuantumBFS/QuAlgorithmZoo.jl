@@ -1,4 +1,5 @@
 using Test, Random, LinearAlgebra, SparseArrays
+using BitBasis
 
 using QuAlgorithmZoo
 import QuAlgorithmZoo: _num_grover_step

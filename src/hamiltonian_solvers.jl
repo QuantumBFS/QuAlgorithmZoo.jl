@@ -36,8 +36,6 @@ function itime_groundstate!(reg::AbstractRegister, h::MatrixBlock; τ::Int=20, t
     span = 1.0
     te = timeevolve(h, -im*span)
     for i = 1:τ÷span
-        @show reg
-        @show te
         reg |> te |> normalize!
     end
     if τ%span != 0

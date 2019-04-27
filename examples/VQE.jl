@@ -13,7 +13,7 @@ c = random_diff_circuit(N, N, [i=>mod(i,N)+1 for i=1:N], mode=:Merged) |> autodi
 dispatch!(c, :random)
 hami = heisenberg(N)
 
-dbs = collect(c, AbstractDiff)
+dbs = collect(AbstractDiff, c)
 
 function scan(db, nparam::Int)
     x = LinRange(0, 2pi, nparam)
