@@ -12,7 +12,7 @@ struct QCBM{BT<:AbstractBlock, KT<:AbstractKernel} <: QCOptProblem
     dbs
 end
 function QCBM(circuit::AbstractBlock, kernel::AbstractKernel, ptrain::Vector)
-    QCBM(circuit, kernel, ptrain, collect(circuit, AbstractDiff))
+    QCBM(circuit, kernel, ptrain, collect_blocks(AbstractDiff, circuit))
 end
 
 # INTERFACES

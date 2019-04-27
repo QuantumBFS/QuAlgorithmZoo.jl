@@ -10,7 +10,7 @@ const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate,
 Return the generator of rotation block.
 """
 generator(rot::RotationGate) = rot.block
-generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>block), rot |> occupied_locs)
+generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
 
 abstract type AbstractDiff{GT, N, T} <: TagBlock{GT, N, T} end
 adjoint(df::AbstractDiff) = Daggered(df)
@@ -33,11 +33,11 @@ content(cb::QDiff) = cb.block
 chcontent(cb::QDiff, blk::RotationGate) = QDiff(blk)
 
 @forward QDiff.block mat, apply!
-adjoint(df::QDiff) = QDiff(parent(df)')
+adjoint(df::QDiff) = QDiff(content(df)')
 
 function print_block(io::IO, df::QDiff)
     printstyled(io, "[̂∂] "; bold=true, color=:yellow)
-    print(io, parent(df))
+    print(io, content(df))
 end
 
 #################### The Back Propagation Diff #################
@@ -56,7 +56,7 @@ mutable struct BPDiff{GT, N, T, PT} <: AbstractDiff{GT, N, T}
     input::AbstractRegister
     BPDiff(block::MatrixBlock{N, T}, grad::PT) where {N, T, PT} = new{typeof(block), N, T, typeof(grad)}(block, grad)
 end
-BPDiff(block::MatrixBlock) = BPDiff(block, zeros(iparameter_type(block), niparameters(block)))
+BPDiff(block::MatrixBlock) = BPDiff(block, zeros(iparams_eltype(block), niparameters(block)))
 BPDiff(block::Rotor{N, T}) where {N, T} = BPDiff(block, T(0))
 
 content(cb::BPDiff) = cb.block
@@ -69,20 +69,20 @@ function apply!(reg::AbstractRegister, df::BPDiff)
     else
         df.input = copy(reg)
     end
-    apply!(reg, parent(df))
+    apply!(reg, content(df))
     reg
 end
 
 function apply!(δ::AbstractRegister, adf::Daggered{<:BPDiff{<:Rotor}})
-    df = adf |> parent
-    apply!(δ, parent(df)')
-    df.grad = -statevec(df.input |> generator(parent(df)))' * statevec(δ) |> imag
+    df = adf |> content
+    apply!(δ, content(df)')
+    df.grad = -statevec(df.input |> generator(content(df)))' * statevec(δ) |> imag
     δ
 end
 
 function print_block(io::IO, df::BPDiff)
     printstyled(io, "[∂] "; bold=true, color=:yellow)
-    print_block(io, parent(df))
+    print_block(io, content(df))
 end
 
 
@@ -228,7 +228,7 @@ backward!(δ::AbstractRegister, circuit::MatrixBlock) = apply!(δ, circuit')
 
 collect all gradients in a circuit, mode can be :BP/:QC/:ANY, they will collect `grad` from BPDiff/QDiff/AbstractDiff respectively.
 """
-gradient(circuit::AbstractBlock, mode::Symbol=:ANY) = gradient!(circuit, parameter_type(circuit)[], mode)
+gradient(circuit::AbstractBlock, mode::Symbol=:ANY) = gradient!(circuit, parameters_eltype(circuit)[], mode)
 
 gradient!(circuit::AbstractBlock, grad, mode::Symbol) = gradient!(circuit, grad, Val(mode))
 function gradient!(circuit::AbstractBlock, grad, mode::Val)

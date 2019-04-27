@@ -67,5 +67,5 @@ end
     # search the subspace
     num_iter = _num_grover_step(p)
     niter, psi = inference(psi0, evidense, num_iter)
-    @test isapprox((psi.state[subinds .+ 1]'*v_desired) |> abs2, 1, atol=1e-2)
+    @test isapprox((psi.state[subinds .+ 1]'*v_desired) |> abs2, 1, atol=3e-2)
 end

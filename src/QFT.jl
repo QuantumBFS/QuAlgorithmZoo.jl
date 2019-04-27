@@ -36,7 +36,7 @@ function invorder_firstdim(v::Matrix)
     n_2 = n ÷ 2
     mask = [bmask(i, n-i+1) for i in 1:n_2]
     @simd for b in basis(n)
-        @inbounds w[breflect(n, b, mask)+1,:] = v[b+1,:]
+        @inbounds w[breflect(b, mask; nbits=n)+1,:] = v[b+1,:]
     end
     w
 end
@@ -48,7 +48,7 @@ function invorder_firstdim(v::Vector)
     #mask = SVector{n_2, Int}([bmask(i, n-i+1)::Int for i in 1:n_2])
     mask = [bmask(i, n-i+1)::Int for i in 1:n_2]
     @simd for b in basis(n)
-        @inbounds w[breflect(n, b, mask)+1] = v[b+1]
+        @inbounds w[breflect(b, mask; nbits=n)+1] = v[b+1]
     end
     w
 end
