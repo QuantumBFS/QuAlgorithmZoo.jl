@@ -17,7 +17,7 @@ function apply!(reg::ArrayReg, seq::Sequence)
 end
 
 for PROP in [:lastindex, :firstindex, :getindex, :length, :eltype, :iterate, :eachindex, :popfirst!, :pop!]
-    @eval Base.$PROP(c::Sequence) = $PROP(c.blocks)
+    @eval Base.$PROP(c::Sequence, args...; kwargs...) = $PROP(c.blocks, args...; kwargs...)
 end
 
 function Base.:(==)(lhs::Sequence, rhs::Sequence)

@@ -1,9 +1,11 @@
-export Rotor, generator, AbstractDiff, BPDiff, QDiff, backward!, gradient
+export Rotor, generator, AbstractDiff, BPDiff, QDiff, backward!, gradient, CPhaseGate, DiffBlock
 import Yao: expect, content, chcontent
 using StatsBase
 
 ############# General Rotor ############
 const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate, <:Complex{T}}}
+const CphaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
+const DiffBlock{N, T} = Union{Rotor{N, T}, CphaseGate{N, T}}
 """
     generator(rot::Rotor) -> MatrixBlock
 
@@ -11,9 +13,10 @@ Return the generator of rotation block.
 """
 generator(rot::RotationGate) = rot.block
 generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
+generator(c::CphaseGate{N}) where N = ControlBlock(N, c.ctrol_locs, ctrl_config, control(2,1,2=>Z), c.locs)
 
 abstract type AbstractDiff{GT, N, T} <: TagBlock{GT, N, T} end
-adjoint(df::AbstractDiff) = Daggered(df)
+Base.adjoint(df::AbstractDiff) = Daggered(df)
 
 istraitkeeper(::AbstractDiff) = Val(true)
 
@@ -27,17 +30,16 @@ Mark a block as quantum differentiable.
 mutable struct QDiff{GT, N, T} <: AbstractDiff{GT, N, Complex{T}}
     block::GT
     grad::T
-    QDiff(block::RotationGate{N, T}) where {N, T} = new{typeof(block), N, T}(block, T(0))
+    QDiff(block::DiffBlock{N, T}) where {N, T} = new{typeof(block), N, T}(block, T(0))
 end
 content(cb::QDiff) = cb.block
-chcontent(cb::QDiff, blk::RotationGate) = QDiff(blk)
+chcontent(cb::QDiff, blk::DiffBlock) = QDiff(blk)
 
 @forward QDiff.block mat, apply!
-adjoint(df::QDiff) = QDiff(content(df)')
+Base.adjoint(df::QDiff) = QDiff(content(df)')
 
-function print_block(io::IO, df::QDiff)
+function YaoBlocks.print_annotation(io::IO, df::QDiff)
     printstyled(io, "[̂∂] "; bold=true, color=:yellow)
-    print(io, content(df))
 end
 
 #################### The Back Propagation Diff #################
@@ -56,8 +58,8 @@ mutable struct BPDiff{GT, N, T, PT} <: AbstractDiff{GT, N, T}
     input::AbstractRegister
     BPDiff(block::MatrixBlock{N, T}, grad::PT) where {N, T, PT} = new{typeof(block), N, T, typeof(grad)}(block, grad)
 end
-BPDiff(block::MatrixBlock) = BPDiff(block, zeros(iparams_eltype(block), niparameters(block)))
-BPDiff(block::Rotor{N, T}) where {N, T} = BPDiff(block, T(0))
+BPDiff(block::MatrixBlock) = BPDiff(block, zeros(parameters_eltype(block), nparameters(block)))
+BPDiff(block::DiffBlock{N, T}) where {N, T} = BPDiff(block, T(0))
 
 content(cb::BPDiff) = cb.block
 chcontent(cb::BPDiff, blk::MatrixBlock) = BPDiff(blk)
@@ -80,9 +82,8 @@ function apply!(δ::AbstractRegister, adf::Daggered{<:BPDiff{<:Rotor}})
     δ
 end
 
-function print_block(io::IO, df::BPDiff)
+function YaoBlocks.print_annotation(io::IO, df::BPDiff)
     printstyled(io, "[∂] "; bold=true, color=:yellow)
-    print_block(io, content(df))
 end
 
 
@@ -101,7 +102,7 @@ autodiff(mode::Symbol) = block->autodiff(mode, block)
 autodiff(mode::Symbol, block::AbstractBlock) = autodiff(Val(mode), block)
 
 # for BP
-autodiff(::Val{:BP}, block::Rotor{N}) where N = BPDiff(block)
+autodiff(::Val{:BP}, block::DiffBlock) = BPDiff(block)
 autodiff(::Val{:BP}, block::AbstractBlock) = block
 # Sequential, Roller and ChainBlock can propagate.
 function autodiff(mode::Val{:BP}, blk::Union{ChainBlock, Roller, Sequential})
@@ -109,7 +110,7 @@ function autodiff(mode::Val{:BP}, blk::Union{ChainBlock, Roller, Sequential})
 end
 
 # for QC
-autodiff(::Val{:QC}, block::RotationGate) = QDiff(block)
+autodiff(::Val{:QC}, block::Union{RotationGate, CphaseGate}) = QDiff(block)
 # escape control blocks.
 autodiff(::Val{:QC}, block::ControlBlock) = block
 
@@ -118,7 +119,7 @@ function autodiff(mode::Val{:QC}, blk::AbstractBlock)
     isempty(blks) ? blk : chsubblocks(blk, autodiff.(mode, blks))
  end
 
-@inline function _perturb(func, gate::AbstractDiff{<:RotationGate}, δ::Real)
+@inline function _perturb(func, gate::AbstractDiff{<:DiffBlock}, δ::Real)
     dispatch!(-, gate, (δ,))
     r1 = func()
     dispatch!(+, gate, (2δ,))
