@@ -6,6 +6,8 @@ struct Sequence <: CompositeBlock{Any, Bool}
     blocks::Vector
 end
 
+Sequence(args...) = Sequence(collect(AbstractBlock, args))
+
 subblocks(seq::Sequence) = filter(x->x isa AbstractBlock, seq.blocks)
 chsubblocks(pb::Sequence, blocks::Vector) = Sequence(blocks)
 

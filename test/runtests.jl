@@ -43,3 +43,11 @@ end
 @testset "hadamard test" begin
     include("HadamardTest.jl")
 end
+
+@testset "Sequence" begin
+    include("Sequence.jl")
+end
+
+@testset "Diff" begin
+    include("Diff.jl")
+end
