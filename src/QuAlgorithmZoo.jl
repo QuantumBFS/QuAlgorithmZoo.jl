@@ -2,7 +2,7 @@ module QuAlgorithmZoo
 
 using LuxurySparse, LinearAlgebra
 using MacroTools: @forward
-using Yao, Yao.ConstGate, BitBasis
+using Yao, YaoBlocks.ConstGate, BitBasis
 using YaoArrayRegister: u1rows!
 import Yao: mat, dispatch!, niparams, getiparams, setiparams!, cache_key, print_block, apply!, PrimitiveBlock, ishermitian, isunitary, isreflexive
 import YaoBlocks: render_params
