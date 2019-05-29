@@ -31,6 +31,7 @@ include("HHL.jl")
 include("hamiltonian_solvers.jl")
 include("HadamardTest.jl")
 include("lin_diffEq_HHL.jl")
+include("QSVD.jl")
 
 
 end # module
