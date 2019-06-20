@@ -12,7 +12,7 @@ function shor(L::Int, ver=Val(:quantum); maxtry=100)
     L%2 == 0 && return 2
 
     # find solutions like `a^b`
-    res = factor_a_power_b(L)
+    res = NumberTheory.factor_a_power_b(L)
     res !== nothing && return res[1]
 
     for i in 1:maxtry
