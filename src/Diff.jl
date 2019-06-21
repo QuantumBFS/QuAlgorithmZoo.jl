@@ -192,6 +192,8 @@ function backward!(state, circuit::Union{ChainBlock, Concentrator})
     return state
 end
 
+backward!(state, block::Measure) = throw(MethodError(backward!, (state, block)))
+
 backward_params!(state, block::AbstractBlock) = nothing
 function backward_params!(state, block::Diff{<:DiffBlock})
     in, outδ = state

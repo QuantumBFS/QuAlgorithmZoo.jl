@@ -12,6 +12,7 @@ using LinearAlgebra, Test, Random
     df2 = Diff(rot(CNOT, 0.3))
     @test df2.grad == 0
     @test nqubits(df2) == 2
+    @test_throws MethodError backward!((reg, reg), Measure(4))
 end
 
 @testset "Qi diff" begin
