@@ -9,7 +9,10 @@ function heisenberg(nbit::Int; periodic::Bool=true)
     sx = i->put(nbit, i=>X)
     sy = i->put(nbit, i=>Y)
     sz = i->put(nbit, i=>Z)
-    mapreduce(i->(j=i%nbit+1; sx(i)*sx(j)+sy(i)*sy(j)+sz(i)*sz(j)), +, 1:(periodic ? nbit : nbit-1))
+    map(1:(periodic ? nbit : nbit-1)) do i
+        j=i%nbit+1
+        sx(i)*sx(j)+sy(i)*sy(j)+sz(i)*sz(j)
+    end |> sum
 end
 
 """

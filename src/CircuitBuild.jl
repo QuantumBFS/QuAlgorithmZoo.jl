@@ -104,6 +104,8 @@ function random_diff_circuit(nbit, nlayer, pairs; mode=:Split, do_cache=false)
     circuit
 end
 
+random_diff_circuit(n::Int) = random_diff_circuit(n, 3, pair_ring(n))
+
 ############### Completely random circuits (for testing and demo) ################
 randlocs(nbit::Int, mbit::Int) = sample(1:nbit, mbit, replace=false)
 const SINGLE_GATES = [X, Y, Z, H, Rx, Ry, Rz, shift, phase]

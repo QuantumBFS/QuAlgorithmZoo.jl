@@ -30,7 +30,7 @@ end
 content(cb::Diff) = cb.block
 chcontent(cb::Diff, blk::DiffBlock) = Diff(blk)
 
-istraitkeeper(::Diff) = Val(true)
+YaoBlocks.PropertyTrait(::Diff) = YaoBlocks.PreserveAll()
 
 @forward Diff.block apply!
 mat(::Type{T}, df::Diff) where T = mat(T, df.block)
@@ -168,13 +168,12 @@ end
 end
 
 """
-    backward!(state, circuit::AbstractBlock) -> AbstractRegister
+    backward!((ψ, ∂L/∂ψ*), circuit::AbstractBlock) -> AbstractRegister
 
-back propagate and calculate the gradient ∂f/∂θ = 2*Re(∂f/∂ψ*⋅∂ψ*/∂θ), given ∂f/∂ψ*.
-`state` is a pair of output_register => the corresponding adjoint.
+back propagate and calculate the gradient ∂L/∂θ = 2*Re(∂L/∂ψ*⋅∂ψ*/∂θ), given ∂L/∂ψ*.
+`ψ` is the output register, ∂L/∂ψ* should also be register type.
 
-Note:
-Here, the input circuit should be a matrix block, otherwise the back propagate may not apply (like Measure operations).
+Note: gradients are stored in `Diff` blocks, it can be access by either `diffblock.grad` or `gradient(circuit)`.
 """
 function backward!(state, block::AbstractBlock)
     out, outδ = state
