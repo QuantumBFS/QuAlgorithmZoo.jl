@@ -1,6 +1,3 @@
-include("number_theory.jl")
-include("Mod.jl")
-
 export shor, order_finding_circuit, get_order
 
 """
@@ -57,12 +54,12 @@ when using the quantum approach, we can set key word arguments `nshot`,
 get_order(::Val{:classical}, x::Int, N::Int; kwargs...) = NumberTheory.find_order(x, N)
 function get_order(::Val{:quantum}, x::Int, N::Int; nshots=10, kwargs...)
     c = order_finding_circuit(x, N; kwargs...)
-    n = nqubits_data(c[2])
-    ncbit = nqubits_control(c[2])
+    n = YaoExtensions.nqubits_data(c[2])
+    ncbit = YaoExtensions.nqubits_control(c[2])
     reg = join(product_state(n, 1), zero_state(ncbit))
 
     res = measure(copy(reg) |> c; nshots=nshots)
-    reader = bint2_reader(Int, ncbit)
+    reader = YaoExtensions.bint2_reader(Int, ncbit)
     for r in res
         k, i = reader(r)
         # get s/r
@@ -77,4 +74,17 @@ function get_order(::Val{:quantum}, x::Int, N::Int; nshots=10, kwargs...)
         end
     end
     return nothing
+end
+
+"""Euler theorem states that the order is a devisor of Eulerφ (or the size of Z* group of `N`)"""
+function check_Euler_theorem(N::Int)
+    Z = NumberTheory.Z_star(N)
+    Nz = length(Z)   # Eulerφ
+    for x in Z
+        @test powermod(x,Nz,N) == 1  # the order is a devisor of Eulerφ
+    end
+end
+
+@testset "Euler" begin
+    check_Euler_theorem(150)
 end

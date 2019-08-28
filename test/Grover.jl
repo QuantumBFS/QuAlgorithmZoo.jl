@@ -1,22 +1,27 @@
-using Test, Random, LinearAlgebra, SparseArrays
+using Test, Random, LinearAlgebra
 using BitBasis
+using Yao, QuAlgorithmZoo
 
-using QuAlgorithmZoo
-import QuAlgorithmZoo: _num_grover_step
-using Yao
-
-function GroverSearch(oracle, num_bit::Int; psi::DefaultRegister = uniform_state(num_bit))
+"""traditional grover search algorithm."""
+function grover_search(oracle, num_bit::Int; psi::DefaultRegister = uniform_state(num_bit))
     it = groveriter(psi, oracle)
-    for l_psi in it psi = l_psi end
+    for l_psi in it
+        psi = l_psi
+    end
     return (it.niter, psi)
 end
 
+"""inference with amplitude amplification."""
 function inference(psi::DefaultRegister, evidense::Vector{Int}, num_iter::Int)
     oracle = inference_oracle(evidense)(nqubits(psi))
     it = groveriter(psi, oracle)
-    for l_psi in it psi = l_psi end
+    for l_psi in it
+        psi = l_psi
+    end
     it.niter, psi
 end
+
+#################### Tests ##################
 
 @testset "oracle" begin
     oracle = inference_oracle([2,-1,3])(3)
@@ -34,7 +39,7 @@ end
     num_bit = 12
     oracle = inference_oracle(push!(collect(Int, 1:num_bit-1), num_bit))(num_bit)
 
-    niter, psi = GroverSearch(oracle, 12)
+    niter, psi = grover_search(oracle, 12)
     target_state = zeros(1<<num_bit); target_state[end] = 1
     @test isapprox(abs(statevec(psi)'*target_state), 1, atol=1e-3)
 end
@@ -65,7 +70,7 @@ end
     v_desired[:] ./= sqrt(p)
 
     # search the subspace
-    num_iter = _num_grover_step(p)
+    num_iter = QuAlgorithmZoo._num_grover_step(p)
     niter, psi = inference(psi0, evidense, num_iter)
     @test isapprox((psi.state[subinds .+ 1]'*v_desired) |> abs2, 1, atol=3e-2)
 end
