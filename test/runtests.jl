@@ -3,11 +3,6 @@ using Yao
 using YaoExtensions
 using QuAlgorithmZoo
 
-
-@testset "Grover" begin
-    include("Grover.jl")
-end
-
 @testset "PhaseEstimation" begin
     include("PhaseEstimation.jl")
 end

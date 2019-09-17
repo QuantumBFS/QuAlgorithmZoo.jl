@@ -1,8 +1,60 @@
-# # Grover Search
+# # [`Grover Search`](@id Grover)
 using Yao
 using LinearAlgebra
-using QuAlgorithmZoo: groveriter, inference_oracle, prob_match_oracle
 
+"""
+A simple inference oracle, e.g. inference([-1, -8, 5]) is a control block that flip the bit if values of bits on position [1, 8, 5] match [0, 0, 1].
+"""
+inference_oracle(nbit::Int, locs::Vector{Int}) = control(nbit, locs[1:end-1], abs(locs[end]) => (locs[end]>0 ? Z : chain(phase(π), Z)))
+
+# Compute the propotion of target states to estimate the number of iterations.
+reg = ArrayReg(ones(ComplexF64, 1<<nbit))
+ratio = norm(statevec(reg)[real(statevec(reg |> oracle)) .< 0])^2
+num_grover_step = Int(round(pi/4/sqrt(ratio)))-1
+
+"""
+    GroverIter{N}
+
+    GroverIter(oracle, ref::ReflectBlock{N}, psi::ArrayReg, niter::Int)
+
+an iterator that perform Grover operations step by step.
+An Grover operation consists of applying oracle and Reflection.
+"""
+struct GroverIter{N}
+    psi::ArrayReg
+    oracle
+    refl::ReflectBlock{N}
+    niter::Int
+end
+
+groveriter(psi::ArrayReg, oracle, refl::ReflectBlock{N}, niter::Int) where {N} = GroverIter{N}(psi, oracle, ref, niter)
+
+function Base.iterate(it::GroverIter, st=1)
+    if it.niter + 1 == st
+        nothing
+    else
+        apply!(it.psi, it.oracle)
+        apply!(it.psi, it.ref), st+1
+    end
+end
+
+"""
+    groverblock(oracle, ref::ReflectBlock{N}, niter::Int=-1)
+    groverblock(oracle, psi::ArrayReg, niter::Int=-1)
+
+Return a ChainBlock/Sequential as Grover Iteration, the default `niter` will stop at the first optimal step.
+"""
+function groverblock(oracle::AbstractBlock{N}, ref::ReflectBlock{N}, niter::Int=-1) where {N}
+    if niter == -1 niter = num_grover_step(ref.psi, oracle) end
+    chain(N, chain(oracle, ref) for i = 1:niter)
+end
+
+function groverblock(oracle, ref::ReflectBlock{N}, niter::Int=-1) where {N}
+    if niter == -1 niter = num_grover_step(ref.psi, oracle) end
+    sequence(sequence(oracle, ref) for i = 1:niter)
+end
+
+groverblock(oracle, psi::ArrayReg, niter::Int=-1) = groverblock(oracle, ReflectBlock(psi |> copy), niter)
 # ## Target Space and Evidense
 num_bit = 12
 oracle = matblock(Diagonal((v = ones(ComplexF64, 1<<num_bit); v[100:101]*=-1; v)))
@@ -24,7 +76,7 @@ end
 reg = rand_state(num_bit)
 
 """
-Doing Inference, reg is the initial state, we want to search target space with specific evidense.
+Inference: reg is the initial state, we want to search target space with specific evidense.
 e.g. evidense [1, -3, 6] means the [1, 3, 6]-th bits take value [1, 0, 1].
 """
 oracle_infer = inference_oracle(evidense)(nqubits(reg))
