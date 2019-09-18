@@ -6,7 +6,7 @@ add Documenter Literate Plots Yao
 
 using Documenter, Literate, QuAlgorithmZoo
 
-const Examples = ["VQE", "Shor"]
+const Examples = ["Grover", "VQE", "Shor"]
 
 const PATH = (
     tutorial = joinpath(@__DIR__, "src/tutorial"),
@@ -30,7 +30,7 @@ end
 
 #-----------------------------------------------
 
-function gen(islocal::Bool="local" in ARGS)
+function generate(islocal::Bool="local" in ARGS)
     makedocs(
         modules = [QuAlgorithmZoo],
         clean = false,
@@ -58,4 +58,4 @@ function gen(islocal::Bool="local" in ARGS)
     )
 end
 
-gen(false)
+generate(true)
