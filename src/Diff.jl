@@ -3,9 +3,9 @@ import Yao: expect, content, chcontent, mat, apply!
 using StatsBase
 
 ############# General Rotor ############
-const Rotor{N, T} = Union{RotationGate{N, T}, PutBlock{N, <:Any, <:RotationGate, <:Complex{T}}}
-const CphaseGate{N, T} = ControlBlock{N,<:ShiftGate{T},<:Any}
-const DiffBlock{N, T} = Union{Rotor{N, T}, CphaseGate{N, T}}
+const Rotor{N} = Union{RotationGate{N}, PutBlock{N, <:Any, <:RotationGate}}
+const CphaseGate{N} = ControlBlock{N,<:ShiftGate,<:Any}
+const DiffBlock{N} = Union{Rotor{N}, CphaseGate{N}}
 """
     generator(rot::Rotor) -> MatrixBlock
 
@@ -15,19 +15,19 @@ generator(rot::RotationGate) = rot.block
 generator(rot::PutBlock{N, C, GT}) where {N, C, GT<:RotationGate} = PutBlock{N}(generator(rot|>content), rot |> occupied_locs)
 generator(c::CphaseGate{N}) where N = ControlBlock(N, c.ctrol_locs, ctrl_config, control(2,1,2=>Z), c.locs)
 
-abstract type AbstractDiff{GT, N, T} <: TagBlock{GT, N, T} end
+abstract type AbstractDiff{GT, N} <: TagBlock{GT, N} end
 Base.adjoint(df::AbstractDiff) = Daggered(df)
 
 istraitkeeper(::AbstractDiff) = Val(true)
 
 #################### The Basic Diff #################
 """
-    QDiff{GT, N, T} <: AbstractDiff{GT, N, Complex{T}}
+    QDiff{GT, N} <: AbstractDiff{GT, N}
     QDiff(block) -> QDiff
 
 Mark a block as quantum differentiable.
 """
-mutable struct QDiff{GT, N, T} <: AbstractDiff{GT, N, Complex{T}}
+mutable struct QDiff{GT, N, T} <: AbstractDiff{GT, N}
     block::GT
     grad::T
     QDiff(block::DiffBlock{N, T}) where {N, T} = new{typeof(block), N, T}(block, T(0))
