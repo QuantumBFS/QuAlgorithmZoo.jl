@@ -16,16 +16,16 @@ function rrule(::typeof(dispatch!), block::AbstractBlock, params)
     end
 end
 
-#function rrule(::typeof(expect), op::AbstractBlock, reg::AbstractRegister{B}) where {B}
-#    out = expect(op, reg)
-#    out, function (outδ)
-#        greg = Yao.AD.expect_g(op, reg)
-#        for b=1:B
-#            viewbatch(greg, b).state .*= outδ[b]
-#        end
-#        return (NoTangent(), NoTangent(), greg)
-#    end
-#end
+function rrule(::typeof(expect), op::AbstractBlock, reg::AbstractRegister{B}) where {B}
+    out = expect(op, reg)
+    out, function (outδ)
+        greg = Yao.AD.expect_g(op, reg)
+        for b=1:B
+            viewbatch(greg, b).state .*= 2*outδ[b]
+        end
+        return (NoTangent(), NoTangent(), greg)
+    end
+end
 
 function rrule(::Type{Matrix}, block::AbstractBlock)
     out = Matrix(block)

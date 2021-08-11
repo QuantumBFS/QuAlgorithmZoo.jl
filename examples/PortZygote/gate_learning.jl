@@ -28,6 +28,6 @@ function learn_u4(u::AbstractMatrix; niter=100)
 end
 
 using Random
-Random.seed!(2)
+Random.seed!(3)
 u = rand_unitary(4)
 c = learn_u4(u; niter=150)
