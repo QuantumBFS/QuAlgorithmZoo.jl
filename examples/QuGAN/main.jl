@@ -1,6 +1,7 @@
 using Yao
-using YaoExtensions: variational_circuit, Sequence, faithful_grad, numdiff
-using QuAlgorithmZoo: Adam, update!
+using Yao.EasyBuild: variational_circuit
+include("../common/Adam.jl")
+using .SimpleOptimizers: Adam, update!
 import Yao: tracedist
 
 """
@@ -9,9 +10,10 @@ Quantum GAN.
 Reference:
     Benedetti, M., Grant, E., Wossnig, L., & Severini, S. (2018). Adversarial quantum circuit learning for pure state approximation, 1–14.
 """
-struct QuGAN{N}
+struct QuGAN
+    nqubits::Int
     target::ArrayReg
-    generator::AbstractBlock{N}
+    generator::AbstractBlock
     discriminator::AbstractBlock
     reg0::ArrayReg
     witness_op::AbstractBlock
@@ -19,9 +21,9 @@ struct QuGAN{N}
 
     function QuGAN(target::ArrayReg, gen::AbstractBlock, dis::AbstractBlock)
         N = nqubits(target)
-        c = Sequence([gen, addbits!(1), dis])
+        c = chain(subroutine(N+1, gen, 1:N), dis)
         witness_op = put(N+1, (N+1)=>ConstGate.P0)
-        new{N}(target, gen, dis, zero_state(N), witness_op, c)
+        new(N+1, join(zero_state(1), target), subroutine(N+1, gen, 1:N), dis, zero_state(N+1), witness_op, c)
     end
 end
 
@@ -30,8 +32,8 @@ circuit(qg::QuGAN) = qg.circuit
 loss(qg::QuGAN) = p0t(qg) - p0g(qg)
 
 function gradient(qg::QuGAN)
-    grad_gen = faithful_grad(qg.witness_op, qg.reg0 => qg.circuit)
-    grad_tar = faithful_grad(qg.witness_op, qg.target => qg.circuit[2:end])
+    grad_gen = expect'(qg.witness_op, qg.reg0 => qg.circuit).second
+    grad_tar = expect'(qg.witness_op, qg.target => qg.circuit[2]).second
     ngen = nparameters(qg.generator)
     [-grad_gen[1:ngen]; grad_tar - grad_gen[ngen+1:end]]
 end
@@ -39,7 +41,7 @@ end
 """probability to get evidense qubit 0 on generation set."""
 p0g(qg::QuGAN) = expect(qg.witness_op, qg.reg0 => qg.circuit) |> real
 """probability to get evidense qubit 0 on target set."""
-p0t(qg::QuGAN) = expect(qg.witness_op, qg.target => qg.circuit[2:end]) |> real
+p0t(qg::QuGAN) = expect(qg.witness_op, qg.target => qg.circuit[2]) |> real
 """generated wave function"""
 outputψ(qg::QuGAN) = copy(qg.reg0) |> qg.generator
 
@@ -61,8 +63,6 @@ qg = QuGAN(target, generator, discriminator)
 
 # check the gradient
 grad = gradient(qg)
-numgrad = numdiff(c->loss(qg), qg.circuit)
-@test isapprox(grad, numgrad, atol=1e-4)
 
 # learning rates for the generator and discriminator
 g_lr = 0.2

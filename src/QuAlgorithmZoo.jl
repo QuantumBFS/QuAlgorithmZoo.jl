@@ -1,15 +1,5 @@
 module QuAlgorithmZoo
 
-using LinearAlgebra
-using Yao, BitBasis
-using YaoExtensions
-
-include("Adam.jl")
-include("PhaseEstimation.jl")
-include("hamiltonian_solvers.jl")
-include("HadamardTest.jl")
-include("number_theory.jl")
-
-@deprecate random_diff_circuit variational_circuit
+project_relative_path(xs...) = normpath(joinpath(dirname(dirname(pathof(@__MODULE__))), xs...))
 
 end # module

@@ -14,23 +14,24 @@ Then open directory `.julia/dev/QuAlgorithmZoo/examples` to find algorithms.
 
 ## Contents
 
-- [QFT](https://github.com/QuantumBFS/YaoExtensions.jl)
-- Phase Estimation
-- Imaginary Time Evolution Quantum Eigensolver
-- Variational Quantum Eigensolver
-- Hadamard Test
-- State Overlap Algorithms
-- Quantum SVD
+- QFT (`Yao.EasyBuild.qft_circuit`)
+- Phase Estimation (`Yao.EasyBuild.phase_estimation_circuit`)
+- Hadamard Test (`Yao.EasyBuild.hadamard_test_circuit`)
+- State Overlap Algorithms (`Yao.EasyBuild.swap_test_circuit`)
 
 In examples folder, you will find
 
-- HHL
-- QAOA
-- Quantum Circuit Born Machine
-- QuGAN
-- Shor
-- Grover search
+- [Variational Quantum Eigensolver](examples/QSVD)
+- [Quantum SVD](examples/QSVD)
+- [Imaginary Time Evolution Quantum Eigensolver](examples/GroundStateSolvers)
+- [HHL algorithm](examples/HHL)
+- [QAOA](examples/QAOA)
+- [Quantum Circuit Born Machine](examples/QCBM)
+- [QuGAN](examples/QuGAN)
+- [Shor](examples/Shor)
+- [Grover search](examples/Grover)
 
+Examples of using Yao in other projects
 - [QuODE](https://github.com/QuantumBFS/QuDiffEq.jl)
 - [TensorNetwork Inspired Circuits](https://github.com/GiggleLiu/QuantumPEPS.jl)
 

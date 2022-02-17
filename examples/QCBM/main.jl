@@ -1,7 +1,12 @@
 # # Quantum Circuit Born Machine
-using Yao, YaoExtensions
+using Yao
+using Yao.EasyBuild: variational_circuit
+using Yao.BitBasis
 import Yao: probs
-using QuAlgorithmZoo: Adam, update!
+include("../common/Adam.jl")
+using .SimpleOptimizers: Adam, update!
+include("stats.jl")
+include("kernel_mmd.jl")
 
 struct QCBM{BT<:AbstractBlock, MT<:MMD}
     circuit::BT
@@ -36,7 +41,7 @@ pg = gaussian_pdf(1:N, N/2-0.5, N/4);
 # Using a random differentiable circuit of depth 6 for training, the kernel function is universal RBF kernel
 depth = 6
 kernel = rbf_kernel(0.25)
-c = variational_circuit(nbit, depth, pair_ring(nbit))
+c = variational_circuit(nbit, depth, Yao.EasyBuild.pair_ring(nbit))
 dispatch!(c, :random)
 qcbm = QCBM(c, MMD(kernel, pg))
 

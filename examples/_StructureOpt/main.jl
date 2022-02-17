@@ -1,9 +1,11 @@
-using Yao, YaoExtensions
+using Yao, Yao.EasyBuild
 using YaoBlocks.Optimise: replace_block
 using YaoBlocks.ConstGate
 using YaoBlocks
 using Test
 using LinearAlgebra
+
+include("Bag.jl")
 
 """
     TODO:

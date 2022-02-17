@@ -1,7 +1,10 @@
-using QuAlgorithmZoo, Yao,YaoExtensions
-using BitBasis: log2i
+using Yao
+using Yao.BitBasis: log2i
+using Yao.EasyBuild: variational_circuit
 using Test
 using Random, LinearAlgebra
+include("../common/Adam.jl")
+using .SimpleOptimizers: Adam, update!
 
 """
 Quantum singular value decomposition algorithm.
@@ -13,7 +16,8 @@ Quantum singular value decomposition algorithm.
     * `Nc`, log2 number of singular values kept,
     * `maxiter`, the maximum number of iterations.
 """
-function train_qsvd!(reg, circuit_a::AbstractBlock{Na}, circuit_b::AbstractBlock{Nb}, optimizer; Nc::Int=min(Na, Nb), maxiter::Int=100) where {Na, Nb}
+function train_qsvd!(reg, circuit_a::AbstractBlock, circuit_b::AbstractBlock, optimizer; Nc::Int=min(nqudits(circuit_a), nqudits(circuit_b)), maxiter::Int=100)
+    Na, Nb = nqudits(circuit_a), nqudits(circuit_b)
     nbit = Na+Nb
     c = circuit_qsvd(circuit_a, circuit_b, Nc)
 
@@ -21,7 +25,7 @@ function train_qsvd!(reg, circuit_a::AbstractBlock{Na}, circuit_b::AbstractBlock
     params = parameters(c)
     for i = 1:maxiter
         grad = expect'(obs, reg => c).second
-        QuAlgorithmZoo.update!(params, grad, optimizer)
+        update!(params, grad, optimizer)
         println("Iter $i, Loss = $(Na+expect(obs, copy(reg) |> c))")
         dispatch!(c, params)
     end

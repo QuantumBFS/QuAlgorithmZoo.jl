@@ -1,16 +1,2 @@
-using Test, Random, LinearAlgebra, SparseArrays
-using Yao
-using YaoExtensions
+using Test
 using QuAlgorithmZoo
-
-@testset "PhaseEstimation" begin
-    include("PhaseEstimation.jl")
-end
-
-@testset "hamiltonian solvers" begin
-    include("hamiltonian_solvers.jl")
-end
-
-@testset "hadamard test" begin
-    include("HadamardTest.jl")
-end

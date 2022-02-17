@@ -11,9 +11,12 @@
 # Here, the input `ver` can be either `Val(:quantum)` or `Val(:classical)`,
 # where the classical version is for comparison.
 
-using Yao, BitBasis
-using YaoExtensions: KMod, QFTCircuit
-using QuAlgorithmZoo: NumberTheory
+using Yao, Yao.BitBasis
+using Yao.EasyBuild: qft_circuit
+
+include("number_theory.jl")
+using .NumberTheory
+include("Mod.jl")
 
 function shor(L::Int, ver=Val(:quantum); maxtry=100)
     L%2 == 0 && return 2
@@ -107,8 +110,8 @@ feeding input `|1>⊗|0>` will get the resulting quantum register with the desir
 """
 function order_finding_circuit(x::Int, L::Int; nbit::Int, ncbit::Int)
     N = nbit+ncbit
-    chain(N, repeat(N, H, 1:ncbit), KMod{N, ncbit}(x, L),
-        subroutine(N, QFTCircuit(ncbit)', 1:ncbit))
+    chain(N, repeat(N, H, 1:ncbit), KMod(N, ncbit, x, L),
+        subroutine(N, qft_circuit(ncbit)', 1:ncbit))
 end
 
 # The circuit for order finding is consisted of three parts

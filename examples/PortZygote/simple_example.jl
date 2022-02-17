@@ -1,9 +1,7 @@
 using Zygote
-include("chainrules_patch.jl")
+using Yao, Random
 
-import YaoExtensions, Random
-
-c = YaoExtensions.variational_circuit(5)
+c = Yao.EasyBuild.variational_circuit(5)
 dispatch!(c, :random)
 
 function loss(reg::AbstractRegister, circuit::AbstractBlock{N}) where N
