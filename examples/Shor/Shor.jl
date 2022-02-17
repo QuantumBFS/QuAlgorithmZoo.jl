@@ -13,7 +13,9 @@
 
 using Yao, BitBasis
 using YaoExtensions: KMod, QFTCircuit
-using QuAlgorithmZoo: NumberTheory
+
+include("number_theory.jl")
+uisng .NumberTheory
 
 function shor(L::Int, ver=Val(:quantum); maxtry=100)
     L%2 == 0 && return 2

@@ -1,4 +1,6 @@
+module SimpleOptimizers
 export Adam
+using LinearAlgebra
 
 mutable struct Adam
     lr::AbstractFloat
@@ -37,4 +39,5 @@ function gclip!(g, gclip)
             BLAS.scale!(gclip/gnorm, g)
         end
     end
+end
 end
