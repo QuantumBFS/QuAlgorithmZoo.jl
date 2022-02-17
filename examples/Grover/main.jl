@@ -110,7 +110,7 @@ function inference_oracle(nbit::Int, locs::Vector{Int})
 end
 oracle = inference_oracle(nqubits(reg), evidense)
 
-# We use a variational circuit generator defined in `YaoExtensions`
+# We use a variational circuit generator defined in `Yao.EasyBuild`
 gen = dispatch!(variational_circuit(num_bit), :random)
 reg = zero_state(num_bit) |> gen
 

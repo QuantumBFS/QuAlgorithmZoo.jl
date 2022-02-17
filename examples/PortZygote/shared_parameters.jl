@@ -1,10 +1,9 @@
 using Zygote
-include("chainrules_patch.jl")
+using Yao.EasyBuild: heisenberg, variational_circuit
+using Random
 
-import YaoExtensions, Random
-
-c = YaoExtensions.variational_circuit(5)
-h = YaoExtensions.heisenberg(5)
+c = variational_circuit(5)
+h = heisenberg(5)
 
 function loss(h, c, θ) where N
     # the assign is nessesary!
