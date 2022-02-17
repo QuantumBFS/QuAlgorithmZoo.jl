@@ -8,7 +8,10 @@
 
 # construct a 5-site heisenberg hamiltonian
 
-using Yao, YaoExtensions
+using Yao, Yao.EasyBuild
+using KrylovKit: eigsolve
+include("../common/Adam.jl")
+using .SimpleOptimizers: update!, Adam
 
 N = 5
 hami = heisenberg(N)
@@ -16,7 +19,6 @@ hami = heisenberg(N)
 # The ground state can be obtained by a sparse matrix ground state solver.
 # The high performance `mat` function in `Yao.jl` makes computation time lower than `10s`
 # to construct a `20` site Heisenberg hamltonian
-using KrylovKit: eigsolve
 
 function ed_groundstate(h::AbstractBlock)
     E, V = eigsolve(h |> mat, 1, :SR, ishermitian=true)
@@ -48,8 +50,6 @@ dispatch!(c, :random)
 # ## Run
 # Use the [`Adam`](@ref) optimizer for parameter optimization,
 # we provide a poorman's implementation in `QuAlgorithmZoo`
-using QuAlgorithmZoo: Adam, update!
-
 optimizer = Adam(lr=0.01)
 params = parameters(c)
 niter = 100

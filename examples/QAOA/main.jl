@@ -1,7 +1,8 @@
 # required packages: NLopt, SCS and Convex
-using Yao, BitBasis
+using Yao, Yao.BitBasis
 using NLopt
 
+# TODO: switch to GraphTensorNetworks
 include("maxcut_gw.jl")
 
 HB(nbit::Int) = sum([put(nbit, i=>X) for i=1:nbit])
@@ -27,7 +28,8 @@ function qaoa_circuit(W::AbstractMatrix, depth::Int; use_cache::Bool=false)
 end
 
 
-function cobyla_optimize(circuit::AbstractBlock{N}, hc::AbstractBlock; niter::Int) where N
+function cobyla_optimize(circuit::AbstractBlock, hc::AbstractBlock; niter::Int)
+    N = nqudits(circuit)
     function f(params, grad)
         reg = zero_state(N) |> dispatch!(circuit, params)
         loss = expect(hc, reg) |> real

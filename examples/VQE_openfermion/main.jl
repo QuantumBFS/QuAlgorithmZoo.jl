@@ -1,7 +1,7 @@
 # A more precise example of $\text H_2$ with 4 qubits hamiltonian.
 
 using Yao
-using YaoExtensions
+using Yao.EasyBuild
 
 # Here we we invoke [OpenFermion](https://github.com/quantumlib/OpenFermion) in Python
 # to get the hamiltonian under [Jordan-Weigner transformation](https://en.wikipedia.org/wiki/Jordan%E2%80%93Wigner_transformation)
@@ -78,8 +78,8 @@ end
 
 # Train VQE to search ground energy on various bond lengths.
 
-bond_lens = Array(0.2:0.1:1.5)#\AA
-pes = Vector{Real}()
+bond_lens = collect(0.2:0.1:1.5)#\AA
+pes = Vector{Float64}()
 
 for l in bond_lens
     terms, coefs = py"get_hamiltonian"(l)

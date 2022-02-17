@@ -10,13 +10,13 @@ Controlled rotation gate used in HHL algorithm, applied on N qubits.
     * C_value:: the value of constant "C", should be smaller than the spectrum "gap".
 """
 struct HHLCRot{NC, T} <: PrimitiveBlock{2}
-    nqubits::Int
+    n::Int
     cbits::Vector{Int}
     ibit::Int
     C_value::T
-    HHLCRot(nqubits::Int, cbits::Vector{Int}, ibit::Int, C_value::T) where {T} = new{length(cbits), T}(nqubits, cbits, ibit, C_value)
+    HHLCRot(n::Int, cbits::Vector{Int}, ibit::Int, C_value::T) where {T} = new{length(cbits), T}(n, cbits, ibit, C_value)
 end
-Yao.nqudits(cr::HHLCRot) = cr.nqubits
+Yao.nqudits(cr::HHLCRot) = cr.n
 
 @inline function hhlrotmat(λ::Real, C_value::Real)
     b = C_value/λ
