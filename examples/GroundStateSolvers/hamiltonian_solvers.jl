@@ -32,19 +32,18 @@ function itime_groundstate!(reg::AbstractRegister, h::AbstractBlock; τ::Int=20,
     reg
 end
 
-include("../common/Adam.jl")
-using .SimpleOptimizers
+import Optimisers
 """
     vqe_solve!(circuit::AbstractBlock{N}, hamiltonian::AbstractBlock; niter::Int=100) -> circuit
 
-variational quantum eigensolver, faithful simulation with optimizer Adam(lr=0.01).
+variational quantum eigensolver, faithful simulation with optimizer `ADAM(0.01)`.
 """
 function vqe_solve!(circuit::AbstractBlock{D}, hamiltonian::AbstractBlock; niter::Int=100) where D
-    optimizer = SimpleOptimizers.Adam(lr=0.01)
     params = parameters(circuit)
+    optimizer = Optimisers.setup(Optimisers.ADAM(0.01), params)
     for i = 1:niter
         grad = expect'(hamiltonian, zero_state(nqudits(circuit)) => circuit).second
-        dispatch!(circuit, SimpleOptimizers.update!(params, grad, optimizer))
+        dispatch!(circuit, Optimisers.update!(optimizer, params, grad)[2])
         println("Step $i, Energy = $(expect(hamiltonian, zero_state(nqudits(circuit)) |> circuit))")
     end
     circuit

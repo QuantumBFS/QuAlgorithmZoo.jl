@@ -1,7 +1,5 @@
 using Yao
 using Yao.EasyBuild: variational_circuit
-include("../common/Adam.jl")
-using .SimpleOptimizers: Adam, update!
 import Yao: tracedist
 
 """

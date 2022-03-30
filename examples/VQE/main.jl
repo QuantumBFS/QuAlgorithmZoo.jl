@@ -10,8 +10,7 @@
 
 using Yao, Yao.EasyBuild
 using KrylovKit: eigsolve
-include("../common/Adam.jl")
-using .SimpleOptimizers: update!, Adam
+import Optimisers
 
 N = 5
 hami = heisenberg(N)
@@ -48,10 +47,10 @@ c = variational_circuit(N)
 dispatch!(c, :random)
 
 # ## Run
-# Use the [`Adam`](@ref) optimizer for parameter optimization,
+# Use the `ADAM` optimizer for parameter optimization,
 # we provide a poorman's implementation in `QuAlgorithmZoo`
-optimizer = Adam(lr=0.01)
 params = parameters(c)
+optimizer = Optimisers.setup(Optimisers.ADAM(0.01), params)
 niter = 100
 
 for i = 1:niter
@@ -59,7 +58,7 @@ for i = 1:niter
     grad_input, grad_params = expect'(hami, zero_state(N) => c)
 
     ## feed the gradients into the circuit.
-    dispatch!(c, update!(params, grad_params, optimizer))
+    dispatch!(c, Optimisers.update!(optimizer, params, grad_params))
     println("Step $i, Energy = $(expect(hami, zero_state(N) |> c))")
 end
 
@@ -80,8 +79,8 @@ c = variational_circuit(2)
 dispatch!(c, :random)
 
 
-optimizer = Adam(lr=0.01)
 params = parameters(c)
+optimizer = Optimsers.setup(Optimisers.ADAM(0.01), params)
 niter = 100
 
 for i = 1:niter
@@ -89,7 +88,7 @@ for i = 1:niter
     grad_input, grad_params = expect'(hami, zero_state(2) => c)
 
     ## feed the gradients into the circuit.
-    dispatch!(c, update!(params, grad_params, optimizer))
+    dispatch!(c, Optimisers.update!(optimizer, params, grad_params))
     println("Step $i, Energy = $(expect(hami, zero_state(2) |> c))")
 end
 

@@ -3,8 +3,7 @@ using Yao
 using Yao.EasyBuild: variational_circuit
 using Yao.BitBasis
 import Yao: probs
-include("../common/Adam.jl")
-using .SimpleOptimizers: Adam, update!
+import Optimisers
 include("stats.jl")
 include("kernel_mmd.jl")
 
@@ -48,12 +47,12 @@ qcbm = QCBM(c, MMD(kernel, pg))
 # ## TRAINING: Adam Optimizer
 # We probide the QCBMGo! iterative interface for training
 niter = 100
-optim = Adam(lr=0.1)
 
 params = parameters(qcbm.circuit)
+optim = Optimisers.setup(Optimisers.ADAM(0.1), params)
 for i=1:niter
     # initialize the parameters
-    update!(params, getgrad(qcbm), optim)
+    Optimisers.update!(optim, params, getgrad(qcbm))
     dispatch!(qcbm.circuit, params)
     println("Step = $i, Loss = $(loss(qcbm))")
 end

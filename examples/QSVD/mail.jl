@@ -3,8 +3,6 @@ using Yao.BitBasis: log2i
 using Yao.EasyBuild: variational_circuit
 using Test
 using Random, LinearAlgebra
-include("../common/Adam.jl")
-using .SimpleOptimizers: Adam, update!
 
 """
 Quantum singular value decomposition algorithm.
@@ -12,7 +10,7 @@ Quantum singular value decomposition algorithm.
     * `reg`, input register (A, B) as the target matrix to decompose,
     * `circuit_a`, U matrix applied on register A,
     * `circuit_b`, V matrix applied on register B,
-    * `optimizer`, the optimizer, normally we use `Adam(lr=0.1)`,
+    * `optimizer`, the optimizer, normally we use `ADAM(0.1)`,
     * `Nc`, log2 number of singular values kept,
     * `maxiter`, the maximum number of iterations.
 """
@@ -23,9 +21,10 @@ function train_qsvd!(reg, circuit_a::AbstractBlock, circuit_b::AbstractBlock, op
 
     obs = -mapreduce(i->put(nbit, i=>Z), +, (1:Na..., Na+Nc+1:Na+Nb...))
     params = parameters(c)
+    opt = Optimisers.setup(optimizer, params)
     for i = 1:maxiter
         grad = expect'(obs, reg => c).second
-        update!(params, grad, optimizer)
+        Optimisers.update!(opt, params, grad)
         println("Iter $i, Loss = $(Na+expect(obs, copy(reg) |> c))")
         dispatch!(c, params)
     end
@@ -56,12 +55,12 @@ kwargs includes
     * `Nc`, log2 number of singular values kept,
     * `circuit_a` and `circuit_b`, the circuit ansatz for `U` and `V` matrices,
     * `maxiter`, maximum number of iterations,
-    * `optimizer`, default is `Adam(lr=0.1)`.
+    * `optimizer`, default is `ADAM(0.1)`.
 """
 function quantumSVD(M::AbstractMatrix; Nc::Int=log2i(min(size(M)...)),
         circuit_a=variational_circuit(log2i(size(M, 1))),
         circuit_b=variational_circuit(log2i(size(M, 2))),
-        maxiter=200, optimizer=Adam(lr=0.1))
+        maxiter=200, optimizer=Optimisers.ADAM(0.1))
 
     dispatch!(circuit_a, :random)
     dispatch!(circuit_b, :random)
