@@ -58,7 +58,8 @@ for i = 1:niter
     grad_input, grad_params = expect'(hami, zero_state(N) => c)
 
     ## feed the gradients into the circuit.
-    dispatch!(c, Optimisers.update!(optimizer, params, grad_params))
+    Optimisers.update!(optimizer, params, grad_params)
+    dispatch!(c, params)
     println("Step $i, Energy = $(expect(hami, zero_state(N) |> c))")
 end
 
