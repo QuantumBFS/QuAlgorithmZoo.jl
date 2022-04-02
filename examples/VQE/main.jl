@@ -11,6 +11,7 @@
 using Yao, Yao.EasyBuild
 using KrylovKit: eigsolve
 import Optimisers
+using LinearAlgebra
 
 N = 5
 hami = heisenberg(N)
@@ -74,14 +75,14 @@ function hydrogen_hamiltonian()
 end
 
 hami = hydrogen_hamiltonian()
-emin = eigvals(Matrix(mat(h)))[1]
+emin = eigvals(Matrix(mat(hami)))[1]
 
 c = variational_circuit(2)
 dispatch!(c, :random)
 
 
 params = parameters(c)
-optimizer = Optimsers.setup(Optimisers.ADAM(0.01), params)
+optimizer = Optimisers.setup(Optimisers.ADAM(0.01), params)
 niter = 100
 
 for i = 1:niter
@@ -89,7 +90,8 @@ for i = 1:niter
     grad_input, grad_params = expect'(hami, zero_state(2) => c)
 
     ## feed the gradients into the circuit.
-    dispatch!(c, Optimisers.update!(optimizer, params, grad_params))
+    Optimisers.update!(optimizer, params, grad_params)
+    dispatch!(c, params)
     println("Step $i, Energy = $(expect(hami, zero_state(2) |> c))")
 end
 
