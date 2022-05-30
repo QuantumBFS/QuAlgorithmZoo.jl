@@ -30,12 +30,12 @@ struct Mod <: PrimitiveBlock{2}
 end
 Yao.nqudits(m::Mod) = m.n
 
-function _apply!(reg::AbstractArrayReg, m::Mod)
+function Yao.unsafe_apply!(reg::AbstractArrayReg, m::Mod)
     nstate = zero(reg.state)
     for i in basis(reg)
-        _i = i >= m.L ? i+1 : mod(i*m.a, m.L)+1
-        for j in 1:B
-            @inbounds nstate[_i,j] = reg.state[i+1,j]
+        _i = buffer(i) >= m.L ? buffer(i)+1 : mod(buffer(i)*m.a, m.L)+1
+        for j in 1:size(nstate, 2)
+            @inbounds nstate[_i,j] = reg.state[buffer(i)+1,j]
         end
     end
     reg.state = nstate
@@ -82,16 +82,16 @@ function bint2_reader(T, k::Int)
     return b -> (b&mask, b>>k)
 end
 
-function _apply!(reg::ArrayReg, m::KMod)
+function Yao.unsafe_apply!(reg::ArrayReg, m::KMod)
     nstate = zero(reg.state)
 
     reader = bint2_reader(Int, m.k)
     for b in basis(reg)
-        k, i = reader(b)
-        _i = i >= m.L ? i : mod(i*powermod(m.a, m.k, m.L), m.L)
+        k, i = reader(buffer(b))
+        _i = i >= m.L ? i : mod(i*powermod(m.a, k, m.L), m.L)
         _b = k + _i<<m.k + 1
-        for j in 1:YaoArrayRegister._asint(nbatch(reg))
-            @inbounds nstate[_b,j] = reg.state[b+1,j]
+        for j in 1:size(nstate, 2)
+            @inbounds nstate[_b,j] = reg.state[buffer(b)+1,j]
         end
     end
     reg.state = nstate
@@ -101,7 +101,7 @@ end
 function Yao.mat(::Type{T}, m::KMod) where {T}
     perm = Vector{Int}(undef, 1<<m.n)
     reader = bint2_reader(Int, m.k)
-    for b in basis(m.n)
+    for b in 0:1<<m.n-1
         k, i = reader(b)
         _i = i >= m.L ? i : mod(i*powermod(m.a, k, m.L), m.L)
         _b = k + _i<<m.k + 1
