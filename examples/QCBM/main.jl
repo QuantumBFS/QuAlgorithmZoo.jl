@@ -40,7 +40,7 @@ pg = gaussian_pdf(1:N, N/2-0.5, N/4);
 # Using a random differentiable circuit of depth 6 for training, the kernel function is universal RBF kernel
 depth = 6
 kernel = rbf_kernel(0.25)
-c = variational_circuit(nbit, depth, Yao.EasyBuild.pair_ring(nbit))
+c = variational_circuit(Float64, nbit, depth, Yao.EasyBuild.pair_ring(nbit))
 dispatch!(c, :random)
 qcbm = QCBM(c, MMD(kernel, pg))
 

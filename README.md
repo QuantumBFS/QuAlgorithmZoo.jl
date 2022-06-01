@@ -21,19 +21,23 @@ Then open directory `.julia/dev/QuAlgorithmZoo/examples` to find algorithms.
 
 In examples folder, you will find
 
-- [Variational Quantum Eigensolver](examples/QSVD)
+- [Variational Quantum Eigensolver](examples/VQE)
+- [Variational Quantum Eigensolver (with OpenFermion)](examples/VQE_openfermion)
 - [Quantum SVD](examples/QSVD)
 - [Imaginary Time Evolution Quantum Eigensolver](examples/GroundStateSolvers)
 - [HHL algorithm](examples/HHL)
 - [QAOA](examples/QAOA)
 - [Quantum Circuit Born Machine](examples/QCBM)
-- [QuGAN](examples/QuGAN)
+- [Quantum GAN](examples/QuGAN)
 - [Shor](examples/Shor)
 - [Grover search](examples/Grover)
+- [Learning a general two qubit unitary gate](examples/GateLearning)
 
 Examples of using Yao in other projects
 - [QuODE](https://github.com/QuantumBFS/QuDiffEq.jl)
 - [TensorNetwork Inspired Circuits](https://github.com/GiggleLiu/QuantumPEPS.jl)
+- [Beta-VQE](https://github.com/wangleiphy/BetaVQE.jl)
+- [Quantum Neural Network Classifier](https://github.com/LWKJJONAK/Quantum_Neural_Network_Classifiers)
 
 ## License
 

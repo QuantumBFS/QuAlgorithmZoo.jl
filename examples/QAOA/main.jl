@@ -2,7 +2,7 @@
 using Yao, Yao.BitBasis
 using NLopt
 
-# TODO: switch to GraphTensorNetworks
+# TODO: switch to GenericTensorNetworks
 include("maxcut_gw.jl")
 
 HB(nbit::Int) = sum([put(nbit, i=>X) for i=1:nbit])

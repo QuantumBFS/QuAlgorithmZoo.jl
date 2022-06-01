@@ -30,7 +30,7 @@ struct Mod <: PrimitiveBlock{2}
 end
 Yao.nqudits(m::Mod) = m.n
 
-function Yao.unsafe_apply!(reg::AbstractArrayReg, m::Mod)
+function YaoBlocks.unsafe_apply!(reg::AbstractArrayReg, m::Mod)
     nstate = zero(reg.state)
     for i in basis(reg)
         _i = buffer(i) >= m.L ? buffer(i)+1 : mod(buffer(i)*m.a, m.L)+1
@@ -44,7 +44,7 @@ end
 
 function Yao.mat(::Type{T}, m::Mod) where {T}
     perm = Vector{Int}(undef, 1<<m.n)
-    for i in basis(m.n)
+    for i in Yao.basis(m.n)
         @inbounds perm[i >= m.L ? i+1 : mod(i*m.a, m.L)+1] = i+1
     end
     PermMatrix(perm, ones(T, 1<<m.n))
@@ -82,11 +82,11 @@ function bint2_reader(T, k::Int)
     return b -> (b&mask, b>>k)
 end
 
-function Yao.unsafe_apply!(reg::ArrayReg, m::KMod)
+function YaoBlocks.unsafe_apply!(reg::ArrayReg, m::KMod)
     nstate = zero(reg.state)
 
     reader = bint2_reader(Int, m.k)
-    for b in basis(reg)
+    for b in Yao.basis(reg)
         k, i = reader(buffer(b))
         _i = i >= m.L ? i : mod(i*powermod(m.a, k, m.L), m.L)
         _b = k + _i<<m.k + 1
@@ -101,11 +101,11 @@ end
 function Yao.mat(::Type{T}, m::KMod) where {T}
     perm = Vector{Int}(undef, 1<<m.n)
     reader = bint2_reader(Int, m.k)
-    for b in 0:1<<m.n-1
-        k, i = reader(b)
+    for b in Yao.basis(m.n)
+        k, i = reader(buffer(b))
         _i = i >= m.L ? i : mod(i*powermod(m.a, k, m.L), m.L)
         _b = k + _i<<m.k + 1
-        @inbounds perm[_b] = b+1
+        @inbounds perm[_b] = buffer(b)+1
     end
     YaoBlocks.LuxurySparse.PermMatrix(perm, ones(T, 1<<m.n))
 end

@@ -30,7 +30,7 @@ function shor(L::Int, ver=Val(:quantum); maxtry=100)
         x = NumberTheory.rand_primeto(L)
 
         ## step 2
-        r = get_order(ver, x, L; )
+        r = get_order(ver, x, L)
         if r%2 == 0 && powermod(x, r÷2, L) != L-1
             ## step 3
             f1, f2 = gcd(powermod(x, r÷2, L)-1, L), gcd(powermod(x, r÷2, L)+1, L)
@@ -125,4 +125,4 @@ end
 # ## Run
 # Factorizing `15`, you should see `3` or `5`, please report a bug if it is not...
 using Random; Random.seed!(129) #src
-shor(15, Val(:quantum))
+println("Factoring 15 gives: ", shor(15, Val(:quantum)))

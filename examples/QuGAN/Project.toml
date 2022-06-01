@@ -1,2 +1,5 @@
 [deps]
 Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
+
+[compat]
+Yao = "0.8"

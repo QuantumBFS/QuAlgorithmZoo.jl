@@ -24,7 +24,7 @@ Yao.nqudits(cr::HHLCRot) = cr.n
     a, -b, b, a
 end
 
-function YaoBlocks._apply!(reg::ArrayReg, hr::HHLCRot{NC, T}) where {NC, T}
+function YaoBlocks.unsafe_apply!(reg::ArrayReg, hr::HHLCRot{NC, T}) where {NC, T}
     mask = bmask(hr.ibit)
     step = 1<<(hr.ibit-1)
     step_2 = step*2

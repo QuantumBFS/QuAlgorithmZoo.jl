@@ -4,5 +4,5 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
 
 [compat]
-Yao = "0.7"
-Optim = "1.6"
+Yao = "0.8"
+Optim = "1.7"
