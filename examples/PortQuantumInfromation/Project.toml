@@ -1,0 +1,8 @@
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+QuantumInformation = "3c0b384b-479c-5684-b2ef-9d7a46dd931e"
+Yao = "5872b779-8223-5990-8dd0-5abbb0748c8c"
+
+[compat]
+Yao = "0.8"
+QuantumInformation = "0.4"
