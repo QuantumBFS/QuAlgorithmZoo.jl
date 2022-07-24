@@ -21,7 +21,6 @@ Then open directory `.julia/dev/QuAlgorithmZoo/examples` to find algorithms.
 
 In examples folder, you will find
 
-- [Variational Quantum Eigensolver](examples/VQE)
 - [Variational Quantum Eigensolver (with OpenFermion)](examples/VQE_openfermion)
 - [Quantum SVD](examples/QSVD)
 - [Imaginary Time Evolution Quantum Eigensolver](examples/GroundStateSolvers)
@@ -32,6 +31,7 @@ In examples folder, you will find
 - [Shor](examples/Shor)
 - [Grover search](examples/Grover)
 - [Learning a general two qubit unitary gate](examples/GateLearning)
+- [Bernstein-Vazirani algorithm](examples/BernsteinVazirani)
 
 Examples of using Yao in other projects
 - [QuODE](https://github.com/QuantumBFS/QuDiffEq.jl)
