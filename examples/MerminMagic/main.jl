@@ -7,12 +7,25 @@ using Random
 # initialize four qubits to be two pairs of Bell Pairs (00)
 bell_state_00(ctr_idx::Int) = chain(4, put(ctr_idx => H), control(ctr_idx, (ctr_idx + 1) => X))
 
-function play()
+function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     # measurement operator table
     op_mtx1 = Matrix{ConstantGate{1,2}}(undef, 3, 3)
     op_mtx1 = [I2 Z Z; X I2 X; -X -Z Y]
     op_mtx2 = Matrix{ConstantGate{1,2}}(undef, 3, 3)
     op_mtx2 = [Z I2 Z; I2 X X; Z X Y]
+
+    ans = zeros(Float64, 4)
+    for k in 1:2
+        # do measurement for Alice depending on the index given
+        ans[k] = measure!(kron(op_mtx1[i, k], I2, op_mtx2[i, k], I2), reg)[1]
+        # do measurement for Bob depending on the index given
+        ans[k+2] = measure!(kron(I2, op_mtx1[k, j], I2, op_mtx2[k, j]), reg)[1]
+    end
+
+    return real.(ans)
+end
+
+function play()
 
     # Dealer randomly generate a pair of numbers (i,j)
     # i is the row number given to Alice
@@ -30,12 +43,8 @@ function play()
 
     reg1 |> circ
 
-    # do measurement for Alice depending on the index given
-    a1 = measure!(kron(op_mtx1[i, 1], I2, op_mtx2[i, 1], I2), reg1)[1]
-    a2 = measure!(kron(op_mtx1[i, 2], I2, op_mtx2[i, 2], I2), reg1)[1]
-    # do measurement for Bob depending on the index given
-    b1 = measure!(kron(I2, op_mtx1[1, j], I2, op_mtx2[1, j]), reg1)[1]
-    b2 = measure!(kron(I2, op_mtx1[2, j], I2, op_mtx2[2, j]), reg1)[1]
+    # do measurement and get answer string
+    a1, a2, b1, b2 = meas_by_idx(reg1, i, j)
 
     println("Alice should give answer: $a1 , $a2 , $(1*a1*a2)")
     println("Bob should give answer: $b1 , $b2 , $(-1*b1*b2)")
@@ -47,4 +56,4 @@ function main()
     play()
 end
 
-main()
+# main()
