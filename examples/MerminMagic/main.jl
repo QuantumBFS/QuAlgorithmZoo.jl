@@ -1,8 +1,6 @@
 # Mermin-Peres Magic Square Game Algorithm
 # https://www.gregegan.net/SCIENCE/MPMS/MPMS.html
 using Yao
-using Yao.EasyBuild, YaoPlots
-
 
 # measurement operator table
 # see Table S1 in https://arxiv.org/abs/2206.12042
@@ -26,12 +24,12 @@ function bell_state(which::Int)
     reg = zero_state(2)
     apply!(reg, chain(put(2, 1 => H), cnot(2, 1, 2)))
     (which == 2 || which == 4) && apply!(reg, put(2, 1 => Z))
-    (which == 3 || which == 4) && apply!(reg, put(2, 2 => X))
+    (which == 3 || which == 4) && apply!(reg, put(2, 1 => X))
     return reg
 end
 
 """
-    init_double_bell_state(reg::ArrayReg)
+    init_double_bell_state()::AbstractRegister
 
 Initialize two pairs of bell state ``(|00> + |11>) ⊗ (|00> + |11>)/2``.
 
@@ -44,7 +42,7 @@ end
 
 
 """
-    meas_by_idx(reg::ArrayReg, i::Int, j::Int)
+    meas_by_idx(reg::AbstractRegister, i::Int, j::Int)::Vector{Float64}
 
 Perform Measurement based on index assigned by dealer.
 
@@ -54,19 +52,15 @@ Perform Measurement based on index assigned by dealer.
 - 'j::Int': the column idx assigned
 
 """
-function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
+function meas_by_idx(reg::AbstractRegister, i::Int, j::Int)
 
     alice_measure!(reg::AbstractRegister, row::Int) = [real(measure!(op, reg, (1, 3))) for op in op_mtx[row, :]]
     bob_measure!(reg::AbstractRegister, col::Int) = [real(measure!(op, reg, (2, 4))) for op in op_mtx[:, col]]
-    ans = zeros(Float64, 6)
-
-    ans[1:3] = alice_measure!(reg, i)'
-    ans[4:6] = bob_measure!(reg, j)'
-    return ans
+    return [alice_measure!(reg, i)'..., bob_measure!(reg, j)'...]
 end
 
 """
-    input_idx!(idx::Int,which::String)::Int
+    input_idx(which::String)::Int
 
 # Arguments
 - 'which::String': whether user is providing index of the row or column
