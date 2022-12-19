@@ -4,7 +4,17 @@ using Yao
 using Yao.EasyBuild, YaoPlots
 using Random
 
-# initialize four qubits to be two pairs of Bell Pairs (00)
+"""
+    init_double_bell_state(reg::ArrayReg)
+
+Initialize two pairs of bell state.
+
+First qubit of each bell state pair belongs to Alice and
+the others belong to Bob.
+
+# Arguments
+- 'reg::ArrayReg': the array of quantum register to initize state upon
+"""
 function init_double_bell_state(reg::ArrayReg)
     for k in [1, 3]
         apply!(reg, put(4, k => H))
@@ -12,8 +22,21 @@ function init_double_bell_state(reg::ArrayReg)
     end
 end
 
+
+"""
+    meas_by_idx(reg::ArrayReg, i::Int, j::Int)
+
+Perform Measurement based on index assigned by dealer.
+
+# Arguments
+- 'reg::ArrayReg': the array of quantum register to measure
+- 'i::Int': the row idx assigned
+- 'j::Int': the column idx assigned
+
+"""
 function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     # measurement operator table
+    # see Table S1 in https://arxiv.org/abs/2206.12042
     op_mtx = Matrix{KronBlock}(undef, 3, 3)
     op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
 
@@ -28,8 +51,11 @@ function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     return real.(ans)
 end
 
+
+"""
+    Show the measurement in each row and column commutes and are Hermitian.
+"""
 function show_hermitian_and_commute()
-    """Show the measurement in each row and column commutes and are Hermitian."""
     op_mtx = Matrix{KronBlock}(undef, 3, 3)
     op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
 
