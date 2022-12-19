@@ -55,22 +55,15 @@ Perform Measurement based on index assigned by dealer.
 
 """
 function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
-    # measurement operator table
-    # see Table S1 in https://arxiv.org/abs/2206.12042
-    op_mtx = Matrix{KronBlock}(undef, 3, 3)
-    op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
 
-    ans = zeros(Float64, 4)
-    for k in 1:2
-        # do measurement for Alice depending on the index given
-        @inbounds ans[k] = measure!(op_mtx[i, k], reg, (1, 3))[1]
-        # do measurement for Bob depending on the index given
-        @inbounds ans[k+2] = measure!(op_mtx[k, j], reg, (2, 4))[1]
-    end
+    alice_measure!(reg::AbstractRegister, row::Int) = [real(measure!(op, reg, (1, 3))) for op in op_mtx[row, :]]
+    bob_measure!(reg::AbstractRegister, col::Int) = [real(measure!(op, reg, (2, 4))) for op in op_mtx[:, col]]
+    ans = zeros(Float64, 6)
 
-    return real.(ans)
+    ans[1:3] = alice_measure!(reg, i)'
+    ans[4:6] = bob_measure!(reg, j)'
+    return ans
 end
-
 
 """
     Show the measurement in each row and column commutes and are Hermitian.
