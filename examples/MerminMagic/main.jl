@@ -56,8 +56,7 @@ function show_hermitian_and_commute()
 
 end
 
-function play()
-
+function main()
     # Dealer randomly generate a pair of numbers (i,j)
     # i is the row number given to Alice
     # j is the column number given to Bob
@@ -87,8 +86,4 @@ function play()
     show_hermitian_and_commute()
 end
 
-function main()
-    play()
-end
-
-# main()
+main()
