@@ -6,25 +6,23 @@ using Random
 
 # initialize four qubits to be two pairs of Bell Pairs (00)
 function init_double_bell_state(reg::ArrayReg)
-    for k in [1,3]
-        apply!(reg,put(4,k=>H))
-        apply!(reg,cnot(4,k,k+1))
+    for k in [1, 3]
+        apply!(reg, put(4, k => H))
+        apply!(reg, cnot(4, k, k + 1))
     end
 end
 
 function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     # measurement operator table
-    op_mtx1 = Matrix{ConstantGate{1,2}}(undef, 3, 3)
-    op_mtx1 = [I2 Z Z; X I2 X; -X -Z Y]
-    op_mtx2 = Matrix{ConstantGate{1,2}}(undef, 3, 3)
-    op_mtx2 = [Z I2 Z; I2 X X; Z X Y]
+    op_mtx = Matrix{KronBlock}(undef, 3, 3)
+    op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
 
     ans = zeros(Float64, 4)
     for k in 1:2
         # do measurement for Alice depending on the index given
-        ans[k] = measure!(kron(op_mtx1[i, k], I2, op_mtx2[i, k], I2), reg)[1]
+        ans[k] = measure!(op_mtx[i, k], reg, (1, 3))[1]
         # do measurement for Bob depending on the index given
-        ans[k+2] = measure!(kron(I2, op_mtx1[k, j], I2, op_mtx2[k, j]), reg)[1]
+        ans[k+2] = measure!(op_mtx[k, j], reg, (2, 4))[1]
     end
 
     return real.(ans)
