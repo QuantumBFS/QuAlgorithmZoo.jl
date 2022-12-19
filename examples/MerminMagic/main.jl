@@ -3,22 +3,43 @@
 using Yao
 using Yao.EasyBuild, YaoPlots
 
+
+# measurement operator table
+# see Table S1 in https://arxiv.org/abs/2206.12042
+op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
+
+"""
+    bell_state(which::Int)::AbstractRegister
+
+Initialize bell state on a quantum register.
+
+# Arguments
+- 'which::Int': which of the four bell states to initialize
+  1 corresponds to ``(|00> + |11>)/√2``
+  2 corresponds to ``(|00> - |11>)/√2``
+  3 corresponds to ``(|01> + |10>)/√2``
+  4 corresponds to ``(|01> - |10>)/√2``
+"""
+function bell_state(which::Int)
+
+    @assert 1 <= which <= 4 "Input $(which) is not in range 1..4"
+    reg = zero_state(2)
+    apply!(reg, chain(put(2, 1 => H), cnot(2, 1, 2)))
+    (which == 2 || which == 4) && apply!(reg, put(2, 1 => Z))
+    (which == 3 || which == 4) && apply!(reg, put(2, 2 => X))
+    return reg
+end
+
 """
     init_double_bell_state(reg::ArrayReg)
 
-Initialize two pairs of bell state.
+Initialize two pairs of bell state ``(|00> + |11>) ⊗ (|00> + |11>)/2``.
 
 First qubit of each bell state pair belongs to Alice and
 the others belong to Bob.
-
-# Arguments
-- 'reg::ArrayReg': the array of quantum register to initize state upon
 """
-function init_double_bell_state(reg::ArrayReg)
-    for k in [1, 3]
-        apply!(reg, put(4, k => H))
-        apply!(reg, cnot(4, k, k + 1))
-    end
+function init_double_bell_state()
+    return join(bell_state(1), bell_state(1))
 end
 
 
@@ -28,7 +49,7 @@ end
 Perform Measurement based on index assigned by dealer.
 
 # Arguments
-- 'reg::ArrayReg': the array of quantum register to measure
+- `reg`: is the quantum register to measure
 - 'i::Int': the row idx assigned
 - 'j::Int': the column idx assigned
 
