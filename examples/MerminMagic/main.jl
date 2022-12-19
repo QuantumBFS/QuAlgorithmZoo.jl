@@ -96,21 +96,15 @@ function main()
     println("Alice will provide three numbers to be written on row: $(i)")
     println("Bob will provide three numbers to be written on column: $(j)")
 
-    # initialize quantum registero
-    reg1 = zero_state(4)
-
-    init_double_bell_state(reg1)
+    # initialize register to two pairs of bell state
+    reg1 = init_double_bell_state()
 
     # do measurement and get answer string
-    # I sort of cheated here, since we know Alice Bob
-    # need to adhere to the rules, the third measurement
-    # won't be necessary hence I just used the fact
-    # that a3 = 1 * a1 * a2 and b3 = -1 * b1 * b2
-    a1, a2, b1, b2 = meas_by_idx(reg1, i, j)
+    a1, a2, a3, b1, b2, b3 = meas_by_idx(reg1, i, j)
 
-    println("Alice should give answer: $a1 , $a2 , $(1*a1*a2)")
-    println("Bob should give answer: $b1 , $b2 , $(-1*b1*b2)")
-    println("We should see $([a1,a2,1*a1*a2][j]) is equal to $([b1,b2,-1*b1*b2][i])")
+    println("Alice should give answer: $a1 , $a2 , $a3")
+    println("Bob should give answer: $b1 , $b2 , $b3")
+    println("We should see $([a1,a2,a3][j]) is equal to $([b1,b2,b3][i])")
     @assert [a1, a2, 1 * a1 * a2][j] == [b1, b2, -1 * b1 * b2][i]
 
     println("To reveal some magic behind the scenes, you may check that measurements on each row and each columns commute with each other and all are hermitian")
