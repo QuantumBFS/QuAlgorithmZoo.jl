@@ -87,7 +87,23 @@ function main()
     # i is the row number given to Alice
     # j is the column number given to Bob
     println("Dealer: Let's Play Mermin's Magic Square Game!")
-    (i, j) = rand([1, 2, 3], (1, 2))
+
+    println("Please enter a number in the range [1,3] as row index")
+    i = parse(Int64,readline())
+    println("Please enter a number in the range [1,3] as col index")
+    j = parse(Int64,readline())
+
+    # test to make sure in bound
+    while i > 3 || i < 1
+        println("Please be nice and enter a number in the range [1,3]")
+        i = parse(Int64,readline())
+    end
+
+    while j > 3 || j < 1
+        println("Please be nice and enter a number in the range [1,3]")
+        j = parse(Int64,readline())
+    end
+
     println("Alice will provide three numbers to be written on row: $(i)")
     println("Bob will provide three numbers to be written on column: $(j)")
 
