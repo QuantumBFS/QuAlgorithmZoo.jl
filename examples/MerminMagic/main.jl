@@ -20,12 +20,40 @@ function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     ans = zeros(Float64, 4)
     for k in 1:2
         # do measurement for Alice depending on the index given
-        ans[k] = measure!(op_mtx[i, k], reg, (1, 3))[1]
+        @inbounds ans[k] = measure!(op_mtx[i, k], reg, (1, 3))[1]
         # do measurement for Bob depending on the index given
-        ans[k+2] = measure!(op_mtx[k, j], reg, (2, 4))[1]
+        @inbounds ans[k+2] = measure!(op_mtx[k, j], reg, (2, 4))[1]
     end
 
     return real.(ans)
+end
+
+function show_hermitian_and_commute()
+    """Show the measurement in each row and column commutes and are Hermitian."""
+    op_mtx = Matrix{KronBlock}(undef, 3, 3)
+    op_mtx = [kron(I2, Z) kron(Z, I2) kron(Z, Z); kron(X, I2) kron(I2, X) kron(X, X); kron(-X, Z) kron(-Z, X) kron(Y, Y)]
+
+    # show all are hermitian
+    for j in 1:3
+        for i in 1:3
+            @inbounds println("$(op_mtx[i,j].blocks) is Hermitian: $(ishermitian(op_mtx[i,j]))")
+        end
+    end
+
+    # show elements in each row commutes
+    for j in 1:3
+        for i in 1:2
+            @inbounds println("$(op_mtx[i,j].blocks) commutes with $(op_mtx[i+1,j].blocks): $(iscommute(op_mtx[i,j],op_mtx[i+1,j]))")
+        end
+    end
+
+    # show elements in each column commutes
+    for j in 1:2
+        for i in 1:3
+            @inbounds println("$(op_mtx[i,j].blocks) commutes with $(op_mtx[i,j+1].blocks): $(iscommute(op_mtx[i,j],op_mtx[i,j+1]))")
+        end
+    end
+
 end
 
 function play()
@@ -54,6 +82,9 @@ function play()
     println("Bob should give answer: $b1 , $b2 , $(-1*b1*b2)")
     println("We should see $([a1,a2,1*a1*a2][j]) is equal to $([b1,b2,-1*b1*b2][i])")
     @assert [a1, a2, 1 * a1 * a2][j] == [b1, b2, -1 * b1 * b2][i]
+
+    println("To reveal some magic behind the scenes, you may check that measurements on each row and each columns commute with each other and all are hermitian")
+    show_hermitian_and_commute()
 end
 
 function main()
