@@ -44,6 +44,10 @@ function play()
     init_double_bell_state(reg1)
 
     # do measurement and get answer string
+    # I sort of cheated here, since we know Alice Bob
+    # need to adhere to the rules, the third measurement
+    # won't be necessary hence I just used the fact
+    # that a3 = 1 * a1 * a2 and b3 = -1 * b1 * b2
     a1, a2, b1, b2 = meas_by_idx(reg1, i, j)
 
     println("Alice should give answer: $a1 , $a2 , $(1*a1*a2)")
