@@ -2,7 +2,6 @@
 # https://www.gregegan.net/SCIENCE/MPMS/MPMS.html
 using Yao
 using Yao.EasyBuild, YaoPlots
-using Random
 
 """
     init_double_bell_state(reg::ArrayReg)
