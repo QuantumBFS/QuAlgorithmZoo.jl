@@ -66,10 +66,22 @@ function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
 end
 
 """
+    input_idx!(idx::Int,which::String)::Int
 
+# Arguments
+- 'which::String': whether user is providing index of the row or column
+"""
+function input_idx(which::String)
+    idx = 0
+    while idx > 3 || idx < 1
+        println("Please provide a $which number in the range [1,3]")
+        try
+            idx = parse(Int64, readline())
+        catch e
+            println("$e ,Please enter a NUMBER!")
         end
     end
-
+    return idx
 end
 
 function main()
@@ -78,21 +90,8 @@ function main()
     # j is the column number given to Bob
     println("Dealer: Let's Play Mermin's Magic Square Game!")
 
-    println("Please enter a number in the range [1,3] as row index")
-    i = parse(Int64,readline())
-    println("Please enter a number in the range [1,3] as col index")
-    j = parse(Int64,readline())
-
-    # test to make sure in bound
-    while i > 3 || i < 1
-        println("Please be nice and enter a number in the range [1,3]")
-        i = parse(Int64,readline())
-    end
-
-    while j > 3 || j < 1
-        println("Please be nice and enter a number in the range [1,3]")
-        j = parse(Int64,readline())
-    end
+    i = input_idx("row")
+    j = input_idx("column")
 
     println("Alice will provide three numbers to be written on row: $(i)")
     println("Bob will provide three numbers to be written on column: $(j)")
