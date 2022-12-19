@@ -5,7 +5,12 @@ using Yao.EasyBuild, YaoPlots
 using Random
 
 # initialize four qubits to be two pairs of Bell Pairs (00)
-bell_state_00(ctr_idx::Int) = chain(4, put(ctr_idx => H), control(ctr_idx, (ctr_idx + 1) => X))
+function init_double_bell_state(reg::ArrayReg)
+    for k in [1,3]
+        apply!(reg,put(4,k=>H))
+        apply!(reg,cnot(4,k,k+1))
+    end
+end
 
 function meas_by_idx(reg::ArrayReg, i::Int, j::Int)
     # measurement operator table
@@ -38,10 +43,7 @@ function play()
     # initialize quantum registero
     reg1 = zero_state(4)
 
-    # initialize circuit
-    circ = chain(bell_state_00(1), bell_state_00(3))
-
-    reg1 |> circ
+    init_double_bell_state(reg1)
 
     # do measurement and get answer string
     a1, a2, b1, b2 = meas_by_idx(reg1, i, j)
