@@ -4,7 +4,7 @@ using Yao
 
 # measurement operator table
 # see Table S1 in https://arxiv.org/abs/2206.12042
-const op_mtx::Matrix{KronBlock} = [kron(I2, Z) kron(Z, I2) kron(Z, Z)
+const magic_square = [kron(I2, Z) kron(Z, I2) kron(Z, Z)
     kron(X, I2) kron(I2, X) kron(X, X)
     kron(-X, Z) kron(-Z, X) kron(Y, Y)]
 
@@ -33,9 +33,9 @@ function bell_state(which::Int)
     return reg
 end
 
-"Alice perform Measurement using Operator specified by row idx"
+# Alice perform Measurement using Operator specified by row idx
 alice_measure!(reg::AbstractRegister, row::Int) = [real(measure!(op, reg, (1, 3))) for op in op_mtx[row, :]]
-"Bob perform Measurement using Operator specified by row idx"
+# Bob perform Measurement using Operator specified by row idx
 bob_measure!(reg::AbstractRegister, col::Int) = [real(measure!(op, reg, (2, 4))) for op in op_mtx[:, col]]
 
 """
@@ -54,7 +54,8 @@ function input_idx(which::String)
         try
             idx = parse(Int64, readline())
         catch e
-            println("$e ,Please enter a NUMBER!")
+            showerror(stdout, e)
+            println("Please enter a NUMBER!")
         end
     end
     return idx
