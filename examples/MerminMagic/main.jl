@@ -34,9 +34,9 @@ function bell_state(which::Int)
 end
 
 # Alice perform Measurement using Operator specified by row idx
-alice_measure!(reg::AbstractRegister, row::Int) = [real(measure!(op, reg, (1, 3))) for op in op_mtx[row, :]]
+alice_measure!(reg::AbstractRegister, row::Int) = [real(measure!(op, reg, (1, 3))) for op in magic_square[row, :]]
 # Bob perform Measurement using Operator specified by row idx
-bob_measure!(reg::AbstractRegister, col::Int) = [real(measure!(op, reg, (2, 4))) for op in op_mtx[:, col]]
+bob_measure!(reg::AbstractRegister, col::Int) = [real(measure!(op, reg, (2, 4))) for op in magic_square[:, col]]
 
 """
     input_idx(which::String) -> Int
@@ -55,7 +55,7 @@ function input_idx(which::String)
             idx = parse(Int64, readline())
         catch e
             showerror(stdout, e)
-            println("Please enter a NUMBER!")
+            println(" Please enter a NUMBER!")
         end
     end
     return idx
@@ -88,9 +88,9 @@ function main()
     # To reveal some magic behind the scenes, you may check that
     # measurements on each row and each columns commute with
     # each other and all are hermitian
-    @assert (all(k -> iscommute(op_mtx[k, :]...), 1:3) &&
-             all(k -> iscommute(op_mtx[:, k]...), 1:3) &&
-             all(ishermitian, op_mtx))
+    @assert (all(k -> iscommute(magic_square[k, :]...), 1:3) &&
+             all(k -> iscommute(magic_square[:, k]...), 1:3) &&
+             all(ishermitian, magic_square))
 end
 
 
