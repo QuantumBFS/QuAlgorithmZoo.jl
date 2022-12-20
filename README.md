@@ -32,6 +32,7 @@ In examples folder, you will find
 - [Grover search](examples/Grover)
 - [Learning a general two qubit unitary gate](examples/GateLearning)
 - [Bernstein-Vazirani algorithm](examples/BernsteinVazirani)
+- [Mermin Magic Square](examples/MerminMagic)
 
 Examples of using Yao in other projects
 - [QuODE](https://github.com/QuantumBFS/QuDiffEq.jl)
