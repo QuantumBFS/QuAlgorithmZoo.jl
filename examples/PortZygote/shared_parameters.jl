@@ -1,4 +1,4 @@
-using Zygote
+using Zygote, Yao
 using Yao.EasyBuild: heisenberg, variational_circuit
 using Random
 
